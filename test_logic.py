@@ -13,7 +13,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-HTML = Path(__file__).with_name("index.html")
+HTML = Path(__file__).parent / "sfc" / "index.html"
 
 
 def extract(src: str, start_marker: str) -> str:
