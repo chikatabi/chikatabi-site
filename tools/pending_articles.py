@@ -28,12 +28,22 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 ARTICLES = ROOT / "articles"
 
-# (ラベル, produced.tsv のパス)
+# (ラベル, ボットの作業ディレクトリ)
 SOURCES = [
-    ("メイン", Path.home() / "chikatabi-script-bot" / "produced.tsv"),
-    ("JGC", Path.home() / "chikatabi-jgc-script-bot" / "produced.tsv"),
-    ("タビノオト", Path.home() / "chikatabi-tabinooto-bot" / "produced.tsv"),
+    ("メイン", Path.home() / "chikatabi-script-bot"),
+    ("JGC", Path.home() / "chikatabi-jgc-script-bot"),
+    ("タビノオト", Path.home() / "chikatabi-tabinooto-bot"),
 ]
+
+
+def find_drafts(bot_dir: Path, publish: str) -> list[str]:
+    """公開予定日で始まるローカル下書きを新しい順に返す。
+
+    最終版のGoogleドキュメントからは「■ データ出典」が削除されているため、
+    出典はここから取る（本文は使わない）。詳細は ARTICLE_RULES.md の 0 と 2。
+    """
+    hits = sorted(bot_dir.glob(f"drafts/{publish}*"), key=lambda p: p.stat().st_mtime, reverse=True)
+    return [str(p) for p in hits]
 
 
 def done_sources() -> set[str]:
@@ -59,7 +69,8 @@ def collect(today: str) -> list[dict]:
     done_ids = {doc_id(u) for u in done if doc_id(u)}
     items: list[dict] = []
 
-    for label, path in SOURCES:
+    for label, bot_dir in SOURCES:
+        path = bot_dir / "produced.tsv"
         if not path.exists():
             print(f"  ⚠️ {label}: {path} がありません", file=sys.stderr)
             continue
@@ -76,6 +87,8 @@ def collect(today: str) -> list[dict]:
                 items.append({
                     "channel": label, "created": created, "publish": publish,
                     "slot": slot, "kind": kind, "title": title, "doc": url,
+                    # 出典を取るためのローカル下書き。本文には使わない
+                    "drafts": find_drafts(bot_dir, publish),
                 })
 
     items.sort(key=lambda x: x["publish"])
@@ -103,7 +116,16 @@ def main() -> int:
     for it in items:
         print(f"  [{it['channel']}] {it['publish']} 枠{it['slot']}／{it['kind']}")
         print(f"    {it['title']}")
-        print(f"    {it['doc']}\n")
+        print(f"    本文（最終版）: {it['doc']}")
+        if it["drafts"]:
+            print(f"    出典（下書き）: {it['drafts'][0]}")
+        else:
+            print("    出典（下書き）: ⚠️ 見つかりません。数字を含む記事にはしないこと")
+        print()
+
+    print("※ 本文はGoogleドキュメント、出典はローカル下書きから取る。")
+    print("※ ドキュメントが開けない場合はDriveを公開日の月日（例『8-7』）で検索する。")
+    print("   詳細は ARTICLE_RULES.md の 0 と 2。")
     return 0
 
 
