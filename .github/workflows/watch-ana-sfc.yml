@@ -1,0 +1,76 @@
+name: ANA SFC制度改定ページの監視
+
+# ANAは2026年9月末までにSFC改定の内容を再発表する予定。
+# 変わったことに気づかず古い基準のままシミュレーターを公開し続けるのを防ぐ。
+# GitHubのサーバーで動くので、Macの電源が入っていなくても止まらない。
+
+on:
+  schedule:
+    - cron: "0 0 * * *"   # 毎日 09:00 JST（UTC 00:00）
+  workflow_dispatch:       # 手動でも実行できる
+
+permissions:
+  contents: write   # 基準ファイルの更新をコミットする
+  issues: write     # 変化を検知したらIssueを立てる
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: ANA公式ページを確認する
+        id: check
+        run: |
+          set +e
+          python3 tools/watch_ana_sfc.py > diff.md 2>&1
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+          set -e
+          cat diff.md
+
+      - name: 取得に失敗した場合は落とす
+        if: steps.check.outputs.exit_code == '2'
+        run: |
+          echo "ANA公式ページを取得できませんでした。ページのURLが変わった可能性があります。"
+          exit 1
+
+      - name: 変化があればIssueを立てる
+        if: steps.check.outputs.exit_code == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "ANA公式のSFC制度改定ページに変化がありました。"
+            echo ""
+            echo "https://www.ana.co.jp/ja/jp/amc/premium/sfc/update2026/"
+            echo ""
+            cat diff.md
+            echo ""
+            echo "---"
+            echo "## やること"
+            echo ""
+            echo "1. ブラウザで上記ページを開いて内容を確認する（WebFetchはタイムアウトする）"
+            echo "2. \`RULES_SOURCE.md\` に差分を反映する"
+            echo "3. \`sfc/index.html\` 冒頭の \`RULES\` を書き換える"
+            echo "   - \`threshold\` / \`periodStart\` / \`periodEnd\` / \`timeline\`"
+            echo "   - 内容が確定していれば \`underReview: false\`（画面の警告バナーが消える）"
+            echo "   - \`version\` を更新する"
+            echo "4. \`python3 test_logic.py\` が通ることを確認する"
+            echo "5. push すると https://lovely-chikatabi.com/sfc/ が自動で更新される"
+          } > issue.md
+          gh issue create \
+            --title "ANA SFC制度改定ページが更新されました（$(date -u +'%Y-%m-%d')）" \
+            --body-file issue.md \
+            --label "ANA制度変更" \
+            || gh issue create \
+                 --title "ANA SFC制度改定ページが更新されました（$(date -u +'%Y-%m-%d')）" \
+                 --body-file issue.md
+
+      - name: 基準ファイルの更新をコミットする
+        if: steps.check.outputs.exit_code == '1'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tools/ana_sfc_baseline.json
+          git commit -m "ANA公式ページの変化を検知したため監視の基準を更新"
+          git push
