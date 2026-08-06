@@ -1,0 +1,118 @@
+/* CHIKATABI サイト共通スタイル
+   トップページと記事ページが使う。/sfc/ のシミュレーターは
+   Artifactとしても配布するため1ファイル完結のままにしてあり、ここは読まない。
+   色と書体はシミュレーターと揃えてある。 */
+
+:root {
+  --ground:#E9EDF1; --surface:#FFFFFF; --sunken:#F3F6F8;
+  --line:#CDD7E0; --line-strong:#A9B7C4;
+  --ink:#0F141A; --muted:#58687A;
+  --accent:#0D6469; --accent-soft:#E0EDEE;
+  --notice:#8A4A20; --notice-soft:#FAEDE3;
+  --sans:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic Medium","Yu Gothic",Meiryo,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Hiragino Sans",monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground:#0E1318; --surface:#161D24; --sunken:#111820;
+    --line:#29343F; --line-strong:#3D4C59;
+    --ink:#E4EBF2; --muted:#93A3B4;
+    --accent:#4FB3B9; --accent-soft:#14282B;
+    --notice:#D9975F; --notice-soft:#29190F;
+  }
+}
+:root[data-theme="dark"] {
+  --ground:#0E1318; --surface:#161D24; --sunken:#111820;
+  --line:#29343F; --line-strong:#3D4C59; --ink:#E4EBF2; --muted:#93A3B4;
+  --accent:#4FB3B9; --accent-soft:#14282B; --notice:#D9975F; --notice-soft:#29190F;
+}
+:root[data-theme="light"] {
+  --ground:#E9EDF1; --surface:#FFFFFF; --sunken:#F3F6F8;
+  --line:#CDD7E0; --line-strong:#A9B7C4; --ink:#0F141A; --muted:#58687A;
+  --accent:#0D6469; --accent-soft:#E0EDEE; --notice:#8A4A20; --notice-soft:#FAEDE3;
+}
+
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:var(--sans); font-size:16px; line-height:1.85;
+  -webkit-text-size-adjust:100%;
+}
+.wrap { max-width:680px; margin:0 auto; padding:26px 18px 72px;
+        display:flex; flex-direction:column; gap:24px; }
+
+/* --- サイト共通のヘッダー／フッター --- */
+.site-head { display:flex; justify-content:space-between; align-items:baseline;
+             gap:14px; flex-wrap:wrap; padding-bottom:14px; border-bottom:1px solid var(--line); }
+.site-name { font-family:var(--mono); font-size:12px; letter-spacing:.14em;
+             color:var(--muted); text-decoration:none; }
+.site-name:hover { color:var(--accent); }
+.site-nav { display:flex; gap:15px; font-size:13px; }
+.site-nav a { color:var(--muted); text-decoration:none; }
+.site-nav a:hover { color:var(--accent); text-decoration:underline; }
+.site-foot { border-top:1px solid var(--line); padding-top:16px;
+             font-size:11.5px; color:var(--muted); line-height:1.8;
+             display:flex; flex-direction:column; gap:6px; }
+.site-foot a { color:var(--muted); }
+
+/* --- 記事本文 --- */
+.article > * + * { margin-top:1.15em; }
+.article h1 { font-size:clamp(23px,5.4vw,31px); line-height:1.4; letter-spacing:-.015em;
+              margin:0; text-wrap:balance; }
+.article h2 { font-size:19px; line-height:1.5; letter-spacing:-.01em;
+              margin-top:2.2em; padding-top:.9em; border-top:1px solid var(--line); }
+.article h3 { font-size:16px; margin-top:1.8em; }
+.article p, .article li { font-size:15.5px; }
+.article ul, .article ol { padding-left:1.35em; display:flex; flex-direction:column; gap:.45em; }
+.article a { color:var(--accent); text-underline-offset:2px; }
+.article strong { font-weight:700; }
+.article code { font-family:var(--mono); font-size:.88em; background:var(--sunken);
+                border:1px solid var(--line); border-radius:4px; padding:.1em .35em; }
+.article pre { background:var(--sunken); border:1px solid var(--line); border-radius:8px;
+               padding:14px; overflow-x:auto; }
+.article pre code { border:0; background:none; padding:0; }
+.article blockquote { margin:0; padding:2px 0 2px 16px; border-left:3px solid var(--line-strong);
+                      color:var(--muted); }
+.article hr { border:0; border-top:1px solid var(--line); }
+
+.table-wrap { overflow-x:auto; }
+.article table { border-collapse:collapse; width:100%; font-size:14px;
+                 font-variant-numeric:tabular-nums; }
+.article th, .article td { border:1px solid var(--line); padding:8px 11px; text-align:left; }
+.article th { background:var(--sunken); font-weight:700; white-space:nowrap; }
+
+.meta { font-family:var(--mono); font-size:11.5px; letter-spacing:.06em;
+        color:var(--muted); margin:0; }
+
+/* --- 注意書き --- */
+.callout { background:var(--notice-soft);
+           border:1px solid color-mix(in srgb, var(--notice) 34%, transparent);
+           border-radius:10px; padding:15px 17px; font-size:14px; line-height:1.75; }
+.callout strong { color:var(--notice); }
+.callout > * + * { margin-top:.6em; }
+
+/* --- ツールへの導線 --- */
+.tool-card { background:var(--surface); border:1px solid var(--line); border-radius:10px;
+             padding:19px 18px; display:flex; flex-direction:column; gap:11px; }
+.tool-card h2 { font-size:15px; margin:0; border:0; padding:0; }
+.tool-card p { font-size:13.5px; color:var(--muted); margin:0; line-height:1.7; }
+.btn { display:block; text-align:center; padding:12px 16px; border-radius:8px;
+       text-decoration:none; font-size:14.5px; font-weight:700;
+       border:1px solid var(--accent); color:var(--accent); background:transparent;
+       transition:background .14s ease; }
+.btn:hover { background:var(--accent-soft); }
+.btn.primary { background:var(--accent); color:var(--surface); }
+.btn.primary:hover { background:color-mix(in srgb, var(--accent) 86%, black); }
+.btn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+
+/* --- 記事一覧 --- */
+.list { display:flex; flex-direction:column; gap:0; }
+.list-item { display:flex; flex-direction:column; gap:5px;
+             padding:17px 0; border-bottom:1px solid var(--line); }
+.list-item:first-child { padding-top:4px; }
+.list-item a { font-size:16.5px; font-weight:700; color:var(--ink);
+               text-decoration:none; line-height:1.55; text-wrap:balance; }
+.list-item a:hover { color:var(--accent); text-decoration:underline; }
+.list-item p { font-size:13.5px; color:var(--muted); margin:0; line-height:1.7; }
+
+@media (prefers-reduced-motion: reduce) { * { transition:none !important; } }

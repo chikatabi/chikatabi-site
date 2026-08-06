@@ -1,70 +1,48 @@
 <title>CHIKATABI｜大人のための旅の教科書</title>
-<style>
-/* トップページ（暫定）。記事サイトを作るときに全面的に置き換える前提。
-   配色・書体は /sfc/ のツールと揃えてある */
-:root {
-  --ground:#E9EDF1; --surface:#FFFFFF; --line:#CDD7E0; --line-strong:#A9B7C4;
-  --ink:#0F141A; --muted:#58687A; --accent:#0D6469; --accent-soft:#E0EDEE;
-  --sans:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic Medium","Yu Gothic",Meiryo,sans-serif;
-  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,"Hiragino Sans",monospace;
-}
-@media (prefers-color-scheme: dark) {
-  :root { --ground:#0E1318; --surface:#161D24; --line:#29343F; --line-strong:#3D4C59;
-          --ink:#E4EBF2; --muted:#93A3B4; --accent:#4FB3B9; --accent-soft:#14282B; }
-}
-:root[data-theme="dark"] { --ground:#0E1318; --surface:#161D24; --line:#29343F; --line-strong:#3D4C59;
-  --ink:#E4EBF2; --muted:#93A3B4; --accent:#4FB3B9; --accent-soft:#14282B; }
-:root[data-theme="light"] { --ground:#E9EDF1; --surface:#FFFFFF; --line:#CDD7E0; --line-strong:#A9B7C4;
-  --ink:#0F141A; --muted:#58687A; --accent:#0D6469; --accent-soft:#E0EDEE; }
-
-* { box-sizing:border-box; }
-body { margin:0; background:var(--ground); color:var(--ink); font-family:var(--sans);
-       font-size:16px; line-height:1.75; -webkit-text-size-adjust:100%; }
-.wrap { max-width:640px; margin:0 auto; padding:44px 18px 72px; display:flex; flex-direction:column; gap:26px; }
-.eyebrow { font-family:var(--mono); font-size:11px; letter-spacing:.16em; color:var(--muted); margin:0; }
-h1 { font-size:clamp(24px,6vw,33px); line-height:1.35; letter-spacing:-.015em; margin:7px 0 0; text-wrap:balance; }
-.lede { color:var(--muted); font-size:14.5px; margin:11px 0 0; }
-h2 { font-size:15px; margin:0; }
-p { margin:0; }
-
-.card { background:var(--surface); border:1px solid var(--line); border-radius:10px;
-        padding:20px 18px; display:flex; flex-direction:column; gap:13px; }
-.card-note { font-size:13px; color:var(--muted); line-height:1.7; }
-.btn { display:block; text-align:center; padding:13px 16px; border-radius:8px; text-decoration:none;
-       font-size:14.5px; font-weight:700; border:1px solid var(--accent); color:var(--accent);
-       background:transparent; transition:background .14s ease; }
-.btn:hover { background:var(--accent-soft); }
-.btn.primary { background:var(--accent); color:var(--surface); }
-.btn.primary:hover { background:color-mix(in srgb, var(--accent) 86%, black); }
-.btn:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
-.links { display:flex; flex-direction:column; gap:9px; }
-footer { font-size:11.5px; color:var(--muted); line-height:1.75; }
-@media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
-</style>
+<meta name="description" content="ANA SFC・JAL JGCの上級会員修行と、その先の旅について。制度の読み解きと、条件を計算できるツールを置いています。">
+<link rel="canonical" href="https://lovely-chikatabi.com/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="CHIKATABI｜大人のための旅の教科書">
+<meta property="og:description" content="ANA SFC・JAL JGCの上級会員修行と、その先の旅について。">
+<meta property="og:url" content="https://lovely-chikatabi.com/">
+<link rel="stylesheet" href="/assets/site.css">
 
 <div class="wrap">
-  <header>
-    <p class="eyebrow">CHIKATABI</p>
-    <h1>大人のための、旅の教科書</h1>
-    <p class="lede">ANA SFC・JAL JGC の上級会員修行と、その先の旅について。YouTubeで発信しています。</p>
+  <header class="site-head">
+    <a class="site-name" href="/">CHIKATABI</a>
+    <nav class="site-nav">
+      <a href="/articles/">記事</a>
+      <a href="/sfc/">SFC判定ツール</a>
+    </nav>
   </header>
 
-  <section class="card">
+  <article class="article">
+    <h1>大人のための、旅の教科書</h1>
+    <p>ANA SFC・JAL JGC の上級会員修行と、その先の旅について。制度は毎年のように変わるので、<strong>一次情報を確かめたうえで</strong>書いています。</p>
+  </article>
+
+  <section class="tool-card">
     <h2>SFC PLUS / LITE 判定シミュレーター</h2>
-    <p class="card-note">2028年4月から、スーパーフライヤーズカードは年間決済額で2つの区分に分かれます。自分がどちらになるか、ANA公式の条件にもとづいて計算できます。決済額に算入されないものも自動で差し引きます。</p>
+    <p>2028年4月から、スーパーフライヤーズカードは年間決済額で2つの区分に分かれます。自分がどちらになるか、ANA公式の条件にもとづいて計算できます。決済額に算入されない支払いも自動で差し引きます。</p>
     <a class="btn primary" href="/sfc/">判定してみる</a>
   </section>
 
-  <section class="card">
-    <h2>CHIKATABI について</h2>
-    <div class="links">
-      <a class="btn" href="https://www.youtube.com/@CHIKATABI-LOVELY">YouTube ／ 大人のための「旅の教科書」</a>
-      <a class="btn" href="https://www.youtube.com/@CHIKATABI-JGC">YouTube ／ JAL修行と旅情報系チャンネル</a>
-      <a class="btn" href="https://lin.ee/S8sN3LM">公式LINE</a>
-    </div>
+  <section class="tool-card">
+    <h2>記事</h2>
+    <p>制度の変更点や、修行の実務について。</p>
+    <a class="btn" href="/articles/">記事の一覧を見る</a>
   </section>
 
-  <footer>
-    <p>© CHIKATABI</p>
+  <section class="tool-card">
+    <h2>YouTube・LINE</h2>
+    <p>動画では毎週、制度の解説と旅の実務を配信しています。</p>
+    <a class="btn" href="https://www.youtube.com/@CHIKATABI-LOVELY">大人のための「旅の教科書」（ANA・SFC）</a>
+    <a class="btn" href="https://www.youtube.com/@CHIKATABI-JGC">JAL修行と旅情報系チャンネル（JAL・JGC）</a>
+    <a class="btn" href="https://lin.ee/S8sN3LM">公式LINE</a>
+  </section>
+
+  <footer class="site-foot">
+    <p>CHIKATABI ／ 大人のための旅の教科書</p>
+    <p>掲載内容は各社公式の発表にもとづいていますが、最新の条件は必ず公式サイトでご確認ください。</p>
   </footer>
 </div>
