@@ -3,12 +3,59 @@
 https://lovely-chikatabi.com
 
 ```
-index.html       トップページ（暫定。記事サイトを作るとき全面的に置き換える）
-sfc/index.html   SFC PLUS/LITE 判定シミュレーター（1ファイル完結・外部依存なし）
-RULES_SOURCE.md  ANA公式から取った一次情報の控え ← 数値の根拠はすべてここ
-test_logic.py    判定ロジックのテスト（29件）
-CNAME            GitHub Pages の独自ドメイン設定
+index.html            トップページ
+sfc/index.html        SFC PLUS/LITE 判定シミュレーター（1ファイル完結・外部依存なし）
+articles/*.md         記事の原稿 ← 直すのはここ
+articles/<slug>/       ビルド生成物。直接編集しない
+assets/site.css       トップと記事の共通スタイル（/sfc/ は読まない）
+RULES_SOURCE.md       ANA公式の一次情報の控え ← 数値の根拠はすべてここ
+ARTICLE_RULES.md      台本を記事にするときの規則
+test_logic.py         判定ロジックのテスト（29件）
+tools/                ビルドと自動化のスクリプト
+CNAME                 GitHub Pages の独自ドメイン設定
 ```
+
+## 記事を書く・直す
+
+```bash
+python3 -m pip install --user markdown   # 初回のみ
+python3 tools/build_articles.py          # articles/*.md → HTML + 一覧 + sitemap.xml
+git add -A && git commit -m "..." && git push
+```
+
+push すると GitHub Pages が自動で更新する（1〜2分）。
+
+**`articles/<slug>/index.html` を直接編集しないこと。** 次のビルドで上書きされる。
+直すのは `articles/<slug>.md` のほう。
+
+## 記事の自動生成
+
+スケジュールタスク `chikatabi-article-writer`（毎週木曜 09:13）が、
+公開済み動画の台本をもとに記事を書いて push する。規則は `ARTICLE_RULES.md`。
+
+```bash
+python3 tools/pending_articles.py        # 記事化がまだの台本を一覧
+```
+
+- 素材は**Googleドキュメント（CHIKAが確認した最終版）のみ**。
+  `drafts/` の下書きも、動画の自動生成字幕も使わない
+- 記事化済みかどうかは `articles/*.md` の front matter の `source:` で判定する。
+  **`source:` を消すと同じ台本から二重に記事が作られる**
+
+### 動画の字幕を素材にしない理由
+
+`tools/fetch_captions.py` で字幕は取得できるが、CHIKATABIの動画に付いているのは
+**自動生成字幕のみ**で、この分野の精度に耐えない。2026-08-06の実測：
+
+| 字幕 | 正しくは |
+|---|---|
+| 無料手荷物1個 23**km** | 23**kg** |
+| 1回の**発見**で完結 | **発券** |
+| 株主優**体**運賃 | 株主優**待**運賃 |
+| ANA**国内戦**（1本に8回） | ANA**国内線** |
+
+1本に数字が114箇所あり、そのまま記事にすると誤情報を大量生産することになる。
+台本には「データ出典」と「ハルシネーションチェック」が付いているので、そちらを使う。
 
 **ツールを `/sfc/` に置いてサブドメインにしていないのは意図的。**
 被リンクの評価をドメイン全体に貯めるため。記事サイトを別サブドメインに切らないこと。
