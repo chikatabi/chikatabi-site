@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="robots" content="noindex,nofollow" />
+<!-- テスト中は検索に出さない。公開するときは scripts/deploy_site.py --live で作り直す -->
+<title>旅そろばん｜ANAプレミアムポイント単価計算（2026年5月19日以降の新ルール対応）</title>
+<meta name="description" content="ANAのプレミアムポイント（PP）単価とフライトマイルを、2026年5月19日以降の新しい国内線ルールで計算します。飛ぶ前に、弾いておく。CHIKATABI制作の非公式ツール。" />
+<meta property="og:url" content="https://lovely-chikatabi.com/soroban/" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="旅そろばん｜ANAプレミアムポイント単価計算" />
+<meta property="og:description" content="飛ぶ前に、弾いておく。2026年5月19日以降の新しい国内線ルールで、PP単価と貯まるマイルを計算します。" />
+<meta property="og:image" content="https://lovely-chikatabi.com/soroban/assets/logo/build/ogp.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" type="image/png" sizes="32x32" href="assets/logo/build/icon-32.png" />
+<link rel="icon" type="image/png" sizes="64x64" href="assets/logo/build/favicon-64.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="assets/logo/build/icon-192.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="assets/logo/build/icon-180.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="旅そろばん" />
+<meta name="theme-color" content="#EDF1F2" />
+<style>
+/* デザイン案C「手帳」。丸ゴシックでやわらかく、角も大きめに丸める。
+   色はロゴから決まっている濃紺 #011D63 と明るい青 #017CFA を軸にする。 */
+:root{
+  --ink:#1B2733; --ink-2:#5E7182; --ink-3:#8FA0AE;
+  --paper:#EDF1F2; --paper-2:#F5F8F8; --card:#FFFFFF;
+  --line:#DDE5E7; --line-2:#C6D2D6;
+  --navy:#011D63;
+  --accent:#017CFA; --accent-2:#0159B4; --accent-soft:#E3F0FE; --accent-line:#B9DBFC;
+  --fill:#011D63; --on-accent:#FFFFFF; --on-accent-dim:rgba(255,255,255,.66);
+  --warm:#B4622A; --warm-soft:#FDF3EA; --warm-line:#F0D6BC;
+  --alert:#A8342F; --alert-soft:#FDF0EF; --alert-line:#F0CFCD;
+  color-scheme:light;
+  --r:18px; --tap:48px;
+  --shadow:0 1px 2px rgba(27,39,51,.04), 0 8px 22px rgba(27,39,51,.06);
+  --maru:"Hiragino Maru Gothic ProN","ヒラギノ丸ゴ ProN W4","Hiragino Maru Gothic Pro",
+         "Yu Gothic Medium","Yu Gothic",Meiryo,sans-serif;
+  --num:"Avenir Next","Avenir",system-ui,sans-serif;
+  --caret:url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%238FA0AE' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--maru);
+  -webkit-font-smoothing:antialiased; line-height:1.6;
+  padding-bottom:calc(96px + env(safe-area-inset-bottom));
+}
+button,select,input{font:inherit;color:inherit}
+.wrap{max-width:840px;margin:0 auto;padding:0 14px}
+
+/* ── header ── */
+header{padding:calc(20px + env(safe-area-inset-top)) 0 18px;background:var(--card);
+  border-bottom:1px solid var(--line)}
+.brand{display:flex;flex-direction:column;gap:9px}
+.brand h1{margin:0;font-size:0;line-height:0}
+.brand img{width:172px;height:auto;display:block}
+.tagline{font-size:13px;color:var(--ink-2);font-weight:600;letter-spacing:.02em}
+
+/* ── tabs ── */
+.tabbar{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--paper) 92%,transparent);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:9px 0}
+.tabrow{display:flex;gap:7px;align-items:center}
+.tabscroll{display:flex;gap:7px;overflow-x:auto;flex:1;min-width:0;scrollbar-width:none}
+.tabscroll::-webkit-scrollbar{display:none}
+.tab{min-height:38px;padding:0 8px 0 13px;border:1px solid var(--line-2);border-radius:999px;
+  background:var(--card);font-size:12.5px;font-weight:700;color:var(--ink-2);white-space:nowrap;
+  flex-shrink:0;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:.15s}
+.tab.on{background:var(--fill);border-color:var(--fill);color:var(--on-accent)}
+.tab .x{width:19px;height:19px;border-radius:999px;display:inline-flex;align-items:center;
+  justify-content:center;font-size:12px;background:color-mix(in srgb,var(--ink) 8%,transparent)}
+.tab.on .x{background:rgba(255,255,255,.2)}
+.newtab{width:38px;height:38px;border:1px dashed var(--line-2);border-radius:999px;background:var(--card);
+  color:var(--accent);font-size:20px;line-height:1;cursor:pointer;flex-shrink:0}
+
+/* ── cards ── */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--shadow);padding:15px 14px;margin:13px 0}
+.ct{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.ct h2{margin:0;font-size:14px;font-weight:800;display:flex;align-items:center;gap:9px}
+.ct h2::before{content:"";width:9px;height:9px;border-radius:99px;background:var(--accent);flex-shrink:0}
+.ct .sub{font-size:11px;color:var(--ink-3);font-weight:700}
+
+/* ── segments ── */
+/* 区間ごとに地の色を変える。旅程が長くなっても、どこからどこまでが1区間か
+   目で追えるようにするため。6色を順に回すので区間が何本増えても破綻しない。 */
+.seg{border:1px solid var(--seg-line);border-radius:14px;background:var(--seg-bg);
+  padding:12px;margin-bottom:11px}
+.seg{--seg-bg:var(--paper-2); --seg-line:var(--line)}
+.seg.c0{--seg-bg:#EEF3FB; --seg-line:#D3E0F2}   /* 空 */
+.seg.c1{--seg-bg:#EBF4F1; --seg-line:#CFE4DC}   /* 海 */
+.seg.c2{--seg-bg:#FAF5E8; --seg-line:#EDE0C4}   /* 砂 */
+.seg.c3{--seg-bg:#FAF0EF; --seg-line:#EED8D6}   /* 夕 */
+.seg.c4{--seg-bg:#F2EFF9; --seg-line:#DDD6ED}   /* 藤 */
+.seg.c5{--seg-bg:#EFF3F4; --seg-line:#D8E0E2}   /* 霧 */
+/* 区間の種別は色ではなく見出しの文字で示す（色は区間の区切りに使ってしまうため） */
+.segtype{font-size:10.5px;font-weight:700;color:var(--ink-3);
+  padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.72);
+  border:1px solid var(--seg-line)}
+.segtop{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:10px}
+.segtop .left{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
+.segno{font-size:11.5px;font-weight:800;color:var(--ink-2)}
+.del{width:32px;height:32px;border:1px solid var(--line-2);border-radius:99px;background:var(--card);
+  color:var(--alert);font-size:14px;cursor:pointer;flex-shrink:0}
+.del[hidden]{visibility:hidden}
+.types{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;margin-bottom:11px}
+.types button{min-height:34px;border:1px solid var(--line-2);border-radius:10px;background:var(--card);
+  font-size:11.5px;font-weight:700;color:var(--ink-2);cursor:pointer;padding:0 6px;transition:.15s}
+.types button.on{background:var(--fill);border-color:var(--fill);color:var(--on-accent)}
+.grid{display:grid;gap:9px}
+@media(min-width:620px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.types{grid-template-columns:repeat(4,1fr)}}
+.f label{display:block;font-size:11.5px;font-weight:700;color:var(--ink-2);margin-bottom:5px}
+select,input[type=text]{width:100%;min-height:var(--tap);border:1px solid var(--line-2);border-radius:11px;
+  background:var(--card);padding:0 34px 0 12px;font-size:16px;font-weight:600;outline:none;appearance:none;-webkit-appearance:none;
+  font-variant-numeric:tabular-nums}
+select{background-image:var(--caret);background-repeat:no-repeat;background-position:right 12px center}
+select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 15%,transparent)}
+.chk{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:650;color:var(--ink-2);
+  margin-top:9px;cursor:pointer;min-height:32px}
+.chk input{width:19px;height:19px;accent-color:var(--accent);flex-shrink:0}
+.chks{display:flex;flex-wrap:wrap;gap:0 16px}
+.hint{font-size:10.5px;color:var(--ink-3);margin:7px 0 0;line-height:1.5}
+.segerr{margin-top:9px;padding:8px 10px;border-radius:10px;background:var(--alert-soft);
+  color:var(--alert);font-size:11.5px;font-weight:700;border:1px solid color-mix(in srgb,var(--alert) 25%,transparent)}
+
+/* ── formula ── */
+details.calc{margin-top:10px}
+details.calc summary{list-style:none;cursor:pointer;font-size:11.5px;font-weight:750;color:var(--accent);
+  display:inline-flex;align-items:center;gap:5px;min-height:30px}
+details.calc summary::-webkit-details-marker{display:none}
+details.calc summary::after{content:"▾";font-size:9px}
+details.calc[open] summary::after{content:"▴"}
+.form{margin-top:5px;padding:11px;border-radius:12px;background:var(--card);border:1px solid var(--line)}
+.frow{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:4px 0}
+.fop{text-align:center;font-size:12px;font-weight:800;color:var(--ink-3);padding:1px 0}
+.fk{font-size:11px;font-weight:700;color:var(--ink-2)}
+.fv{font-family:var(--num);font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.fv.hl{color:var(--accent);font-size:16px}
+.fnote{margin-top:8px;font-size:10px;color:var(--ink-3);line-height:1.55}
+hr.dash{border:none;border-top:1px dashed var(--line-2);margin:8px 0}
+
+.addbtn{width:100%;min-height:46px;border-radius:12px;font-size:13.5px;font-weight:800;cursor:pointer;
+  border:1px dashed var(--line-2);background:var(--paper-2);color:var(--accent);margin-top:4px}
+.addbtn.solid{border:none;background:var(--fill);color:var(--on-accent)}
+
+/* ── amounts ── */
+.amt{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-bottom:9px}
+.yenwrap{position:relative}
+.yenwrap input{padding-right:38px}
+.yen{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:12.5px;
+  font-weight:800;color:var(--ink-3);pointer-events:none}
+
+/* ── results ── */
+.res{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:13px}
+@media(min-width:620px){.res{grid-template-columns:repeat(4,1fr)}}
+.box{border:1px solid var(--line);border-radius:13px;padding:12px 10px;text-align:center;background:var(--paper-2)}
+.box.hl{background:var(--fill);border-color:var(--fill)}
+.bk{font-size:10.5px;font-weight:800;color:var(--ink-3);letter-spacing:.03em;margin-bottom:6px}
+.box.hl .bk{color:rgba(255,255,255,.72)}
+.bv{font-family:var(--num);font-size:24px;font-weight:600;line-height:1.1;
+  font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.box.hl .bv{color:var(--on-accent)}
+.bu{font-size:10.5px;color:var(--ink-3);margin-top:4px;font-weight:700}
+.box.hl .bu{color:rgba(255,255,255,.62)}
+
+/* ── delta banner ── */
+.delta{margin-top:12px;padding:11px 13px;border-radius:12px;background:var(--warm-soft);
+  border:1px solid color-mix(in srgb,var(--warm) 30%,transparent);font-size:12px;font-weight:700;color:var(--warm);line-height:1.6}
+.delta b{font-size:15px;font-variant-numeric:tabular-nums}
+
+/* ── bottom bar ── */
+.bottom{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:9px 12px calc(9px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,transparent,var(--paper) 30%)}
+.bottomin{max-width:840px;margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:16px;
+  box-shadow:var(--shadow);padding:9px;display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.bi{text-align:center;padding:7px 4px;border-radius:11px;background:var(--paper-2)}
+.bi.hl{background:var(--fill)}
+.bik{font-size:9.5px;font-weight:800;color:var(--ink-3);margin-bottom:4px}
+.bi.hl .bik{color:rgba(255,255,255,.7)}
+.biv{font-family:var(--num);font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.15}
+.bi.hl .biv{color:var(--on-accent)}
+.biu{font-size:9.5px;color:var(--ink-3);font-weight:700;margin-top:2px}
+.bi.hl .biu{color:rgba(255,255,255,.6)}
+
+/* ── footer ── */
+footer{margin-top:26px;padding:20px 0 34px;border-top:1px solid var(--line);font-size:11.5px;color:var(--ink-3);line-height:1.75}
+footer h3{font-size:12.5px;font-weight:800;color:var(--ink-2);margin:0 0 7px}
+footer a{color:var(--accent);text-decoration:none;font-weight:700}
+.foot-brand{margin-top:6px;padding-top:14px;border-top:1px solid var(--line);font-weight:700}
+footer a:hover{text-decoration:underline}
+footer ul{margin:0 0 14px;padding-left:1.1em}
+.cta{display:block;margin:16px 0 20px;padding:15px;border-radius:14px;background:var(--accent-soft);
+  border:1px solid color-mix(in srgb,var(--accent) 25%,transparent);text-decoration:none;color:inherit}
+.cta strong{display:block;font-size:14px;font-weight:800;color:var(--accent-2);margin-bottom:4px}
+.cta span{font-size:12px;color:var(--ink-2);font-weight:600}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:11px}
+.toolbar button{min-height:38px;padding:0 14px;border-radius:10px;border:1px solid var(--line-2);
+  background:var(--card);font-size:12px;font-weight:750;color:var(--ink-2);cursor:pointer}
+.toast{position:fixed;left:50%;bottom:calc(110px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:99px;font-size:12.5px;
+  font-weight:750;z-index:60;opacity:0;pointer-events:none;transition:opacity .2s;white-space:nowrap}
+.toast.on{opacity:1}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <h1>
+        <img src="assets/logo/build/logo@600.png" alt="旅そろばん" width="600" height="143" />
+      </h1>
+      <span class="tagline">飛ぶ前に、弾いておく。</span>
+    </div>
+  </div>
+</header>
+
+<div class="tabbar">
+  <div class="wrap tabrow">
+    <div class="tabscroll" id="tabs"></div>
+    <button class="newtab" id="newtab" title="旅程を追加">＋</button>
+  </div>
+</div>
+
+<main class="wrap" id="main"></main>
+
+<div class="bottom">
+  <div class="bottomin">
+    <div class="bi"><div class="bik">合計 PP</div><div class="biv" id="b-pp">0</div><div class="biu">ポイント</div></div>
+    <div class="bi"><div class="bik">合計マイル</div><div class="biv" id="b-mi">0</div><div class="biu">マイル</div></div>
+    <div class="bi hl"><div class="bik">PP 単価</div><div class="biv" id="b-rate">—</div><div class="biu">円 / PP</div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import {
+  RULE_VERSION, RULE_CHECKED_AT, SEATS, DOMESTIC_FARES, INTL_CLASSES,
+  INTL_DOM_CLASSES, STATUSES, CARDS, SOURCES,
+} from "./lib/rules.js";
+import {
+  ALL_AIRPORTS, destinations, calcSegment, calcItinerary, faresFor,
+  INTL_ORIGINS, intlDests, intlRoute,
+} from "./lib/calc.js";
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const n = (x) => x.toLocaleString("ja-JP");
+
+// ─── 数値入力 ─────────────────────────────────────────────────────────────
+// input type="number" は使わない。全角数字（５００００）もカンマ区切り（50,000）も
+// 受け付けず、value が空文字になって打った内容が消えるため。
+// text + inputmode で受けて、こちらで半角化・不要文字の除去をする。
+function numInput(attrs, value) {
+  return `<input type="text" inputmode="numeric" autocomplete="off" ${attrs} value="${esc(value)}">`;
+}
+
+// 全角数字を半角に直したうえで、数字以外を落とす。
+const cleanNumeric = (raw) => String(raw)
+  .replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+  .replace(/[^0-9]/g, "");
+
+// 打った内容を整えつつ、カーソルが飛ばないように位置を計算し直す。
+function sanitizeField(el) {
+  const before = el.value;
+  const caret = el.selectionStart === null ? before.length : el.selectionStart;
+  const cleaned = cleanNumeric(before);
+  if (cleaned === before) return cleaned;
+  const kept = cleanNumeric(before.slice(0, caret)).length;
+  el.value = cleaned;
+  try { el.setSelectionRange(kept, kept); } catch (err) { /* noop */ }
+  return cleaned;
+}
+
+const TYPES = [
+  { id: "domestic", label: "国内線" },
+  { id: "intlDom", label: "国際券の国内区間" },
+  { id: "intl", label: "国際線（ANA）" },
+  { id: "partner", label: "提携社便" },
+];
+
+// ─── state ────────────────────────────────────────────────────────────────
+const STORE = "chikatabi-pp-v1";
+let ST = null;
+
+function newSeg(o = {}) {
+  return {
+    type: "domestic", from: "", to: "", seat: "economy", fare: "standard",
+    paidUpgrade: false, intlFrom: "東京", intlTo: "", cls: "Y",
+    partnerMiles: "", partnerRate: "100", bonusEligible: false, roundtrip: true, ...o,
+  };
+}
+function newTab(name = "新しい旅程", segs) {
+  return { id: ++ST.seq, name, segments: segs || [newSeg()], amounts: [""] };
+}
+function blank() {
+  return {
+    seq: 0, activeId: 1, statusId: "regular", cardId: "ana_general",
+    tabs: [{ id: 1, name: "新しい旅程", segments: [newSeg({ from: "東京", to: "沖縄" })], amounts: [""] }],
+  };
+}
+const tab = () => ST.tabs.find((t) => t.id === ST.activeId) || ST.tabs[0];
+
+function save() {
+  try { localStorage.setItem(STORE, JSON.stringify(ST)); } catch (e) { /* プライベートモード等 */ }
+}
+// 保存データや共有URLは、項目を増やす前の古い形のことがある。
+// 足りない項目を既定値で埋めてから使う。埋めないと、たとえば国際線の出発地が
+// 未設定のまま画面には「東京」と出て、行き先の選択肢が空になる。
+function hydrate(d) {
+  if (!d || !Array.isArray(d.tabs) || !d.tabs.length) return null;
+  d.tabs.forEach((t) => {
+    t.amounts = Array.isArray(t.amounts) && t.amounts.length ? t.amounts : [""];
+    const segs = Array.isArray(t.segments) && t.segments.length ? t.segments : [{}];
+    t.segments = segs.map((raw) => {
+      const seg = newSeg(raw || {});
+      normalize(seg);
+      return seg;
+    });
+  });
+  return d;
+}
+
+function load() {
+  const q = new URLSearchParams(location.search).get("d");
+  if (q) {
+    try {
+      const d = hydrate(JSON.parse(decodeURIComponent(escape(atob(q.replace(/-/g, "+").replace(/_/g, "/"))))));
+      if (d) return d;
+    } catch (e) { /* 壊れたURLは無視して通常起動 */ }
+  }
+  try {
+    const d = hydrate(JSON.parse(localStorage.getItem(STORE) || "null"));
+    if (d) return d;
+  } catch (e) { /* noop */ }
+  return null;
+}
+ST = load() || blank();
+ST.seq = Math.max(ST.seq || 0, ...ST.tabs.map((t) => t.id));
+if (!ST.tabs.some((t) => t.id === ST.activeId)) ST.activeId = ST.tabs[0].id;
+
+// ─── 旅程名の自動命名 ─────────────────────────────────────────────────────
+function rename(t) {
+  const stops = [];
+  t.segments.forEach((s) => {
+    if (s.type === "domestic" || s.type === "intlDom") {
+      if (!s.from || !s.to) return;
+      if (!stops.length) stops.push(s.from);
+      stops.push(s.to);
+    } else if (s.type === "intl") {
+      if (!s.intlFrom || !s.intlTo) return;
+      if (!stops.length) stops.push(s.intlFrom);
+      stops.push(s.intlTo);
+    }
+  });
+  const partner = t.segments.filter((s) => s.type === "partner").length;
+  if (!stops.length) { t.name = partner ? `提携社便 ${partner}区間` : "新しい旅程"; return; }
+  t.name = stops.join("→") + (partner ? ` +提携${partner}` : "");
+}
+
+// ─── 描画 ─────────────────────────────────────────────────────────────────
+function opts(list, sel, val = (x) => x, lab = (x) => x) {
+  return list.map((x) => `<option value="${esc(val(x))}"${val(x) === sel ? " selected" : ""}>${esc(lab(x))}</option>`).join("");
+}
+
+function renderTabs() {
+  $("tabs").innerHTML = ST.tabs.map((t) => `
+    <button class="tab${t.id === ST.activeId ? " on" : ""}" data-tab="${t.id}">
+      ${esc(t.name)}${ST.tabs.length > 1 ? `<span class="x" data-close="${t.id}">×</span>` : ""}
+    </button>`).join("");
+}
+
+function segFields(s, i) {
+  const T = s.type;
+  if (T === "domestic") {
+    const dests = s.from ? destinations(s.from) : ALL_AIRPORTS;
+    const fares = faresFor(s.paidUpgrade ? "economy" : s.seat);
+    return `
+      <div class="grid">
+        <div class="f"><label>出発</label>
+          <select data-set="${i}:from"><option value="">選ぶ</option>${opts(ALL_AIRPORTS, s.from)}</select></div>
+        <div class="f"><label>到着</label>
+          <select data-set="${i}:to"><option value="">選ぶ</option>${opts(dests, s.to)}</select></div>
+        <div class="f"><label>座席クラス</label>
+          <select data-set="${i}:seat">${opts(SEATS, s.seat, (x) => x.id, (x) => `${x.label}（${x.note}）`)}</select></div>
+        <div class="f"><label>${s.paidUpgrade ? "元の購入運賃" : "運賃"}</label>
+          <select data-set="${i}:fare">${opts(fares, s.fare, (x) => x.id, (x) => x.label)}</select></div>
+      </div>
+      ${s.seat === "first" ? `<label class="chk"><input type="checkbox" data-chk="${i}:paidUpgrade"${s.paidUpgrade ? " checked" : ""}>
+        <span>料金を払ってファーストクラスへアップグレードした</span></label>
+        <p class="hint">有償アップグレードは元運賃の積算率 ＋50%。搭乗ポイントは元運賃のままで、ファースト運賃で買った場合の400ptにはなりません。マイルでのアップグレードは積算対象外です。</p>` : ""}`;
+  }
+  if (T === "intlDom") {
+    const dests = s.from ? destinations(s.from) : ALL_AIRPORTS;
+    return `
+      <div class="grid">
+        <div class="f"><label>出発</label>
+          <select data-set="${i}:from"><option value="">選ぶ</option>${opts(ALL_AIRPORTS, s.from)}</select></div>
+        <div class="f"><label>到着</label>
+          <select data-set="${i}:to"><option value="">選ぶ</option>${opts(dests, s.to)}</select></div>
+        <div class="f"><label>ブッキングクラス</label>
+          <select data-set="${i}:cls">${opts(INTL_DOM_CLASSES, s.cls, (x) => x.code, (x) => `${x.code}（${x.rate}%・${x.bp}pt）`)}</select></div>
+      </div>
+      <p class="hint">2026年5月19日から、国際航空券で発券した国内区間にも搭乗ポイントが付くようになりました（F/A・Y/B/M は400pt）。それ以前は運賃にかかわらず一律0ptでした。T は国内区間では積算対象外です。</p>`;
+  }
+  if (T === "intl") {
+    const dests = intlDests(s.intlFrom);
+    const route = intlRoute(s.intlFrom, s.intlTo);
+    return `
+      <div class="grid">
+        <div class="f"><label>日本側の空港</label>
+          <select data-set="${i}:intlFrom">${opts(INTL_ORIGINS, s.intlFrom)}</select></div>
+        <div class="f"><label>海外の都市</label>
+          <select data-set="${i}:intlTo"><option value="">選ぶ</option>${opts(dests, s.intlTo)}</select></div>
+        <div class="f"><label>予約クラス</label>
+          <select data-set="${i}:cls">${opts(INTL_CLASSES, s.cls, (x) => x.code, (x) => `${x.code}（${x.cabin} ${x.rate}%・${x.bp}pt）`)}</select></div>
+      </div>
+      <p class="hint">${route
+        ? `区間基本マイレージ ${n(route.miles)}マイル、路線倍率 ×${route.mult}${route.mult === 1.5 ? "（アジア・オセアニア・ウラジオストク路線）" : "（その他の路線）"}。`
+        : "ANAグループ運航便の路線です。"}
+      搭乗ポイントは座席クラス基準なので、P・N は積算率70%でも400ptが付きます。<br>
+      他社運航のスターアライアンス便は「提携社便」を選んでください。路線倍率と搭乗ポイントの判定基準が違います。</p>`;
+  }
+  return `
+    <div class="grid">
+      <div class="f"><label>区間基本マイレージ</label>
+        ${numInput(`placeholder="5000" data-set="${i}:partnerMiles"`, s.partnerMiles)}</div>
+      <div class="f"><label>積算率（%）</label>
+        ${numInput(`placeholder="100" data-set="${i}:partnerRate"`, s.partnerRate)}</div>
+    </div>
+    <label class="chk"><input type="checkbox" data-chk="${i}:bonusEligible"${s.bonusEligible ? " checked" : ""}>
+      <span>UA / LH / LX / OS のいずれか（ボーナスマイル対象）</span></label>
+    <p class="hint">スターアライアンス便は路線倍率1倍。搭乗ポイントは積算率100%以上なら400pt、未満は0ptで、ANA便とは判定基準が違います。PPは付きますが、フライトボーナスマイルはユナイテッド・ルフトハンザ・スイス・オーストリアの4社だけが対象です。</p>`;
+}
+
+// 「計算式」の開閉は再描画をまたいで保つ（入力のたびに閉じると読めないため）
+const openCalc = new Set();
+document.addEventListener("toggle", (e) => {
+  const d = e.target;
+  if (!d.classList || !d.classList.contains("calc")) return;
+  const i = d.dataset.seg;
+  if (d.open) openCalc.add(i); else openCalc.delete(i);
+}, true);
+
+function segFormula(s, r, i) {
+  if (!r.ok) return `<div class="segerr">${esc(r.reason)}</div>`;
+  const legs = r.legs;
+  const multLab = r.mult === 2 ? "×2.0（国内線）" : r.mult === 1.5 ? "×1.5（アジア・オセアニア）" : "×1.0";
+  return `
+    <details class="calc" data-seg="${i}"${openCalc.has(String(i)) ? " open" : ""}><summary>計算式</summary>
+      <div class="form">
+        <div class="frow"><span class="fk">区間基本マイレージ</span><span class="fv">${n(r.base)}</span></div>
+        <div class="fop">×</div>
+        <div class="frow"><span class="fk">積算率</span><span class="fv">${r.rate}%</span></div>
+        <div class="fop">×</div>
+        <div class="frow"><span class="fk">路線倍率</span><span class="fv">${multLab}</span></div>
+        <div class="fop">＋</div>
+        <div class="frow"><span class="fk">搭乗ポイント</span><span class="fv">${n(r.boardingPoint)}</span></div>
+        <div class="fop">＝</div>
+        <div class="frow"><span class="fk">PP${legs === 2 ? "（往復）" : ""}</span><span class="fv hl">${n(r.ppPerLeg * legs)}</span></div>
+        <hr class="dash">
+        <div class="frow"><span class="fk">フライトマイル${legs === 2 ? "（往復）" : ""}</span><span class="fv">${n(r.milesPerLeg * legs)}</span></div>
+        <p class="fnote">PP ＝ 区間基本マイレージ × 積算率 × 路線倍率 ＋ 搭乗ポイント<br>
+        フライトマイル ＝ 区間基本マイレージ × 積算率（ボーナス除く）<br>
+        端数はいずれも切り捨て。${r.note ? "<br>" + esc(r.note) : ""}</p>
+      </div>
+    </details>`;
+}
+
+// 構造が変わったとき（タブ切替・区間の増減・種別や選択肢の変更）だけ全体を組み直す。
+// 文字入力では呼ばない。呼ぶと入力欄が作り直されてカーソルと選択範囲が壊れる。
+function render() {
+  renderTabs();
+  $("main").innerHTML = buildMain(tab());
+  refreshOutputs();
+}
+
+function segsHtml(t) {
+  return t.segments.map((s, i) => `
+    <div class="seg c${i % 6}">
+      <div class="segtop">
+        <div class="left"><span class="segno">区間 ${i + 1}</span>
+          <span class="segtype">${TYPES.find((t) => t.id === s.type).label}</span></div>
+        <button class="del" data-delseg="${i}"${t.segments.length > 1 ? "" : " hidden"}>✕</button>
+      </div>
+      <div class="types">
+        ${TYPES.map((x) => `<button data-type="${i}:${x.id}" class="${s.type === x.id ? "on" : ""}">${x.label}</button>`).join("")}
+      </div>
+      ${segFields(s, i)}
+      <label class="chk"><input type="checkbox" data-chk="${i}:roundtrip"${s.roundtrip ? " checked" : ""}>
+        <span>この区間を往復で数える</span></label>
+      <div class="out-formula" data-fseg="${i}"></div>
+    </div>`).join("");
+}
+
+// 出力（数字・バナー）だけを組み立てる。入力欄はここに含めない。
+function resultsHtml(res) {
+  return `
+    <div class="box"><div class="bk">合計 PP</div><div class="bv">${n(res.totalPP)}</div><div class="bu">ポイント</div></div>
+    <div class="box"><div class="bk">うち ANA便</div><div class="bv">${n(res.anaGroupPP)}</div><div class="bu">ポイント</div></div>
+    <div class="box"><div class="bk">合計金額</div><div class="bv">${res.totalAmount > 0 ? n(res.totalAmount) : "—"}</div><div class="bu">円</div></div>
+    <div class="box hl"><div class="bk">PP 単価</div><div class="bv">${res.ppCost === null ? "—" : res.ppCost.toFixed(1)}</div><div class="bu">円 / PP</div></div>`;
+}
+function deltaHtml(res) {
+  if (res.ppDelta <= 0) return "";
+  return `<div class="delta">この旅程は2026年5月19日の改定で <b>＋${n(res.ppDelta)} PP</b> 増えました。<br>
+    国際航空券で発券した国内区間に搭乗ポイントが付くようになったためです（旧ルールなら ${n(res.legacyPP)} PP）。</div>`;
+}
+function milesHtml(res) {
+  return `
+    <div class="box"><div class="bk">基本マイル</div><div class="bv">${n(res.baseFlightMiles)}</div><div class="bu">マイル</div></div>
+    <div class="box"><div class="bk">ボーナス +${res.bonusRate}%</div><div class="bv">${n(res.bonusMiles)}</div><div class="bu">マイル</div></div>
+    <div class="box hl"><div class="bk">合計マイル</div><div class="bv">${n(res.totalMiles)}</div><div class="bu">マイル</div></div>`;
+}
+// 入力欄には一切触らず、出力だけを差し替える。
+// 入力のたびに入力欄ごと作り直すとカーソルと選択範囲が壊れるため、これを分けている。
+function paintOutputs(res) {
+  const t = tab();
+  $("out-results").innerHTML = resultsHtml(res);
+  $("out-delta").innerHTML = deltaHtml(res);
+  $("out-miles").innerHTML = milesHtml(res);
+  document.querySelectorAll("[data-fseg]").forEach((el) => {
+    const i = +el.dataset.fseg;
+    el.innerHTML = segFormula(t.segments[i], res.details[i], i);
+  });
+  $("b-pp").textContent = n(res.totalPP);
+  $("b-mi").textContent = n(res.totalMiles);
+  $("b-rate").textContent = res.ppCost === null ? "—" : res.ppCost.toFixed(1);
+}
+
+function refreshOutputs() {
+  const t = tab();
+  paintOutputs(calcItinerary(t.segments, {
+    statusId: ST.statusId, cardId: ST.cardId, amounts: t.amounts,
+  }));
+  save();
+}
+
+// 入力欄と枠組みだけを組み立てる。数字の入る場所は空の器にしておき、paintOutputs が埋める。
+function buildMain(t) {
+  return `
+    <div class="card">
+      <div class="ct"><h2>フライト区間</h2><span class="sub">${t.segments.length}区間</span></div>
+      ${segsHtml(t)}
+      <button class="addbtn solid" id="addseg">＋ 区間を追加</button>
+    </div>
+
+    <div class="card">
+      <div class="ct"><h2>かかったお金</h2><span class="sub">航空券・ホテルなど</span></div>
+      ${t.amounts.map((a, i) => `
+        <div class="amt">
+          <div class="f"><label>金額${t.amounts.length > 1 ? ` ${i + 1}` : ""}</label>
+            <div class="yenwrap">${numInput(`placeholder="30000" data-amt="${i}"`, a)}<span class="yen">円</span></div></div>
+          <button class="del" data-delamt="${i}"${t.amounts.length > 1 ? "" : " hidden"}>✕</button>
+        </div>`).join("")}
+      <button class="addbtn" id="addamt">＋ 金額を追加</button>
+
+      <div class="res" id="out-results"></div>
+      <div id="out-delta"></div>
+      <p class="hint">「うち ANA便」はANAグループ運航便で得たPPです。提携社便のPPは合計には入りますが、こちらには入りません。ステイタス獲得条件はこの2つを別々に見るため、分けて出しています。<br>
+      この計算機は入力した旅程だけを見ます。1年分の搭乗実績は持っていないので、ステイタスまであといくらかは出せません。年間の獲得PPはANAの「ご利用実績照会」でご確認ください。</p>
+    </div>
+
+    <div class="card">
+      <div class="ct"><h2>貯まるマイル</h2></div>
+      <div class="grid">
+        <div class="f"><label>会員ステイタス</label>
+          <select data-opt="statusId">${opts(STATUSES, ST.statusId, (x) => x.id, (x) => `${x.label}${x.rate ? `（+${x.rate}%）` : ""}`)}</select></div>
+        <div class="f"><label>お持ちのカード</label>
+          <select data-opt="cardId">${opts(CARDS, ST.cardId, (x) => x.id, (x) => `${x.label}${x.rate ? `（+${x.rate}%）` : ""}`)}</select></div>
+      </div>
+      <div class="res" id="out-miles" style="grid-template-columns:repeat(3,1fr)"></div>
+      <p class="hint">ステイタスの積算率とカードの積算率は合算されず、高い方だけが適用されます。ANAゴールドカード／ANAカード プレミアムをお持ちの場合はステイタスの積算率が5%上がります。<br>
+      貯まったマイルを円に換算した単価は出していません。1マイルの価値は貯め方ではなく使い道で決まり、同じ路線でもシーズンによって必要マイル数が1.5倍変わるためです。</p>
+
+      <div class="toolbar">
+        <button id="share">この旅程のリンクをコピー</button>
+        <button id="reset">最初から作り直す</button>
+      </div>
+    </div>`;
+}
+
+// ─── イベント ─────────────────────────────────────────────────────────────
+function patch(path, value) {
+  const [i, key] = path.split(":");
+  tab().segments[+i][key] = value;
+  if (key === "from") {
+    const s = tab().segments[+i];
+    if (!destinations(value).includes(s.to)) s.to = "";
+  }
+  if (key === "intlFrom") {
+    const s = tab().segments[+i];
+    if (!intlDests(value).includes(s.intlTo)) s.intlTo = "";
+  }
+  if (key === "seat" && value === "economy") tab().segments[+i].paidUpgrade = false;
+  // 区間種別ごとに使える予約クラス／運賃が違う。切り替え時に必ず有効な値へ戻す。
+  if (key === "type") normalize(tab().segments[+i]);
+  if (key === "paidUpgrade" || key === "seat") normalizeFare(tab().segments[+i]);
+  rename(tab());
+  render();
+}
+
+function normalize(s) {
+  if (s.type === "intlDom" && !INTL_DOM_CLASSES.some((c) => c.code === s.cls)) s.cls = "Y";
+  if (s.type === "intl" && !INTL_CLASSES.some((c) => c.code === s.cls)) s.cls = "Y";
+  if (s.type === "intl" || s.type === "partner") { s.from = ""; s.to = ""; }
+  // 出発地が不正だと行き先の選択肢が空になり、画面だけ「東京」に見えてしまう
+  if (!INTL_ORIGINS.includes(s.intlFrom)) s.intlFrom = INTL_ORIGINS[0];
+  if (!intlDests(s.intlFrom).includes(s.intlTo)) s.intlTo = "";
+  normalizeFare(s);
+}
+function normalizeFare(s) {
+  const seat = s.paidUpgrade ? "economy" : s.seat;
+  if (!faresFor(seat).some((f) => f.id === s.fare)) s.fare = faresFor(seat)[0].id;
+}
+
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-tab],[data-close],[data-type],[data-delseg],[data-delamt]");
+  if (e.target.closest("#newtab")) { const nt = newTab(); ST.tabs.push(nt); ST.activeId = nt.id; return render(); }
+  if (e.target.closest("#addseg")) { tab().segments.push(newSeg()); rename(tab()); return render(); }
+  if (e.target.closest("#addamt")) { tab().amounts.push(""); return render(); }
+  if (e.target.closest("#share")) return share();
+  if (e.target.closest("#reset")) {
+    if (confirm("保存した旅程をすべて消して最初から作り直します。よろしいですか？")) {
+      ST = blank(); history.replaceState({}, "", location.pathname); render();
+    }
+    return;
+  }
+  if (!t) return;
+  if (t.dataset.close) {
+    e.stopPropagation();
+    const id = +t.dataset.close, i = ST.tabs.findIndex((x) => x.id === id);
+    ST.tabs.splice(i, 1);
+    if (ST.activeId === id) ST.activeId = ST.tabs[Math.max(0, i - 1)].id;
+    return render();
+  }
+  if (t.dataset.tab) { ST.activeId = +t.dataset.tab; return render(); }
+  if (t.dataset.type) { const [i, v] = t.dataset.type.split(":"); return patch(`${i}:type`, v); }
+  if (t.dataset.delseg) {
+    tab().segments.splice(+t.dataset.delseg, 1);
+    if (!tab().segments.length) tab().segments.push(newSeg());
+    rename(tab()); return render();
+  }
+  if (t.dataset.delamt) {
+    tab().amounts.splice(+t.dataset.delamt, 1);
+    if (!tab().amounts.length) tab().amounts.push("");
+    return render();
+  }
+});
+
+document.addEventListener("change", (e) => {
+  const el = e.target;
+  // 数値欄は input 側で処理済み。ここで作り直すとカーソルが飛ぶので触らない。
+  if (el.dataset.amt !== undefined) return;
+  if (el.dataset.set && NUM_KEYS.includes(el.dataset.set.split(":")[1])) return;
+  if (el.dataset.set) return patch(el.dataset.set, el.value);
+  if (el.dataset.chk) return patch(el.dataset.chk, el.checked);
+  if (el.dataset.opt) { ST[el.dataset.opt] = el.value; return render(); }
+});
+
+// 文字入力では入力欄に触らない。状態を更新して、出力側だけを描き直す。
+// （input type=number は selectionStart が取れないので、作り直すとカーソルと選択範囲が失われる。
+//   全選択して打ち直すと古い値が残る、という不具合がここから出ていた）
+const NUM_KEYS = ["partnerMiles", "partnerRate"];
+document.addEventListener("input", (e) => {
+  const el = e.target;
+  if (el.dataset.amt !== undefined) {
+    tab().amounts[+el.dataset.amt] = sanitizeField(el);
+    return refreshOutputs();
+  }
+  if (el.dataset.set) {
+    const [i, key] = el.dataset.set.split(":");
+    if (!NUM_KEYS.includes(key)) return;
+    tab().segments[+i][key] = sanitizeField(el);
+    return refreshOutputs();
+  }
+});
+
+let toastTimer;
+function toast(msg) {
+  const el = $("toast");
+  el.textContent = msg; el.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("on"), 1800);
+}
+function share() {
+  const json = JSON.stringify(ST);
+  const b64 = btoa(unescape(encodeURIComponent(json))).replace(/\+/g, "-").replace(/\//g, "_");
+  const url = `${location.origin}${location.pathname}?d=${b64}`;
+  history.replaceState({}, "", url);
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => toast("リンクをコピーしました"), () => toast("URLが更新されました"));
+  } else { toast("URLが更新されました"); }
+}
+
+ST.tabs.forEach(rename);
+render();
+
+// ─── 出典（rules.js の SOURCES から生成する） ─────────────────────────────
+document.body.insertAdjacentHTML("beforeend", `
+  <footer class="wrap">
+    <a class="cta" href="https://lovely-chikatabi.square.site/product/-sfc-sfc-/10?cs=true&amp;cst=custom" target="_blank" rel="noopener">
+      <strong>数字は出ました。で、どう飛ぶか。</strong>
+      <span>いちばん安く回るルートの組み方は、CHIKATABIの1:1相談でいっしょに考えます。</span>
+    </a>
+    <h3>この計算の根拠</h3>
+    <ul>${SOURCES.map(([t, u]) => `<li><a href="${u}" target="_blank" rel="noopener">${esc(t)}</a></li>`).join("")}</ul>
+    <h3>ご注意</h3>
+    <ul>
+      <li>CHIKATABI制作の<strong>非公式</strong>ツールです。ANAが提供・監修するものではありません。</li>
+      <li>${RULE_VERSION} 以降の搭乗分のルールで計算しています（${RULE_CHECKED_AT} にANA公式で確認）。</li>
+      <li>区間基本マイレージはANA公式チャートから機械的に取り込んだ146区間です。公式チャートは空港ではなく都市単位で、東京は羽田または成田、大阪は伊丹・関西・神戸を指します。</li>
+      <li>キャンペーンの追加マイル、ライフソリューションサービス経由のステイタス獲得、他社運航のコードシェア便の扱いなどは反映していません。</li>
+      <li>実際の積算はANAの「ご利用実績照会」が正です。予約前に必ずANA公式でご確認ください。</li>
+    </ul>
+    <p class="foot-brand"><a href="https://www.youtube.com/@CHIKATABI-LOVELY" target="_blank" rel="noopener">YouTube</a> ／ <a href="https://lin.ee/S8sN3LM" target="_blank" rel="noopener">公式LINE</a></p>
+    <p>© CHIKATABI</p>
+  </footer>`);
+</script>
+</body>
+</html>

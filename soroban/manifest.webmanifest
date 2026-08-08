@@ -1,0 +1,32 @@
+{
+  "name": "旅そろばん｜ANAプレミアムポイント単価計算 - CHIKATABI",
+  "short_name": "旅そろばん",
+  "description": "飛ぶ前に、弾いておく。2026年5月19日以降の新しい国内線ルールで、PP単価と貯まるマイルを計算します。",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#EDF1F2",
+  "theme_color": "#EDF1F2",
+  "icons": [
+    {
+      "src": "./assets/logo/build/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/logo/build/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/logo/build/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
