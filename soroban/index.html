@@ -246,11 +246,11 @@ footer ul{margin:0 0 14px;padding-left:1.1em}
 import {
   RULE_VERSION, RULE_CHECKED_AT, SEATS, DOMESTIC_FARES, INTL_CLASSES,
   INTL_DOM_CLASSES, STATUSES, CARDS, SOURCES,
-} from "./lib/rules.js";
+} from "./lib/rules.js?v=c3dc51d1";
 import {
   ALL_AIRPORTS, destinations, calcSegment, calcItinerary, faresFor,
   INTL_ORIGINS, intlDests, intlRoute,
-} from "./lib/calc.js";
+} from "./lib/calc.js?v=c3dc51d1";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
