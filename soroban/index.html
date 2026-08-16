@@ -83,6 +83,11 @@ header{padding:calc(20px + env(safe-area-inset-top)) 0 18px;background:var(--car
 .ct h2{margin:0;font-size:14px;font-weight:800;display:flex;align-items:center;gap:9px}
 .ct h2::before{content:"";width:9px;height:9px;border-radius:99px;background:var(--accent);flex-shrink:0}
 .ct .sub{font-size:11px;color:var(--ink-3);font-weight:700}
+.ct-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.linkbtn{border:none;background:none;padding:4px 2px;font-size:11.5px;font-weight:700;
+  color:var(--ink-3);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.linkbtn:hover{color:var(--alert)}
+.linkbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 
 /* ── segments ── */
 /* 区間ごとに地の色を変える。旅程が長くなっても、どこからどこまでが1区間か
@@ -304,6 +309,13 @@ function blank() {
   };
 }
 const tab = () => ST.tabs.find((t) => t.id === ST.activeId) || ST.tabs[0];
+
+// 区間に何か入力されているか。空の1区間だけなら「すべて消す」を出さない。
+function hasSegmentInput(t) {
+  if (t.segments.length > 1) return true;
+  const s = t.segments[0];
+  return !!(s && (s.from || s.to || s.intlTo || s.partnerMiles));
+}
 
 function save() {
   try { localStorage.setItem(STORE, JSON.stringify(ST)); } catch (e) { /* プライベートモード等 */ }
@@ -544,7 +556,10 @@ function refreshOutputs() {
 function buildMain(t) {
   return `
     <div class="card">
-      <div class="ct"><h2>フライト区間</h2><span class="sub">${t.segments.length}区間</span></div>
+      <div class="ct"><h2>フライト区間</h2>
+        <div class="ct-right"><span class="sub">${t.segments.length}区間</span>${
+          hasSegmentInput(t) ? `<button class="linkbtn" id="clearseg">すべて消す</button>` : ""}</div>
+      </div>
       ${segsHtml(t)}
       <button class="addbtn solid" id="addseg">＋ 区間を追加</button>
     </div>
@@ -622,6 +637,14 @@ document.addEventListener("click", (e) => {
   const t = e.target.closest("[data-tab],[data-close],[data-type],[data-delseg],[data-delamt]");
   if (e.target.closest("#newtab")) { const nt = newTab(); ST.tabs.push(nt); ST.activeId = nt.id; return render(); }
   if (e.target.closest("#addseg")) { tab().segments.push(newSeg()); rename(tab()); return render(); }
+  if (e.target.closest("#clearseg")) {
+    const t = tab();
+    const n = t.segments.length;
+    if (!confirm(`${n}区間ぶんの入力をすべて消します。よろしいですか？`)) return;
+    t.segments = [newSeg()];
+    rename(t);
+    return render();
+  }
   if (e.target.closest("#addamt")) { tab().amounts.push(""); return render(); }
   if (e.target.closest("#share")) return share();
   if (e.target.closest("#reset")) {
