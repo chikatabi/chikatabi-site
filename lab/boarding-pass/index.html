@@ -227,8 +227,18 @@ async function handleImage(file, tag, box) {
   cv.width = bmp.width; cv.height = bmp.height;
   const ctx = cv.getContext("2d");
   ctx.drawImage(bmp, 0, 0);
-  const res = await ZXingWASM.readBarcodes(ctx.getImageData(0, 0, cv.width, cv.height), { tryHarder: true, maxNumberOfSymbols: 3 });
-  const found = res.filter(r => r.isValid && r.text);
+  let res = await ZXingWASM.readBarcodes(ctx.getImageData(0, 0, cv.width, cv.height), { tryHarder: true, maxNumberOfSymbols: 3 });
+  let found = res.filter(r => r.isValid && r.text);
+  // 大きい画像で見つからないときは、縮めて読み直す
+  for (const w of [1200, 800]) {
+    if (found.length || bmp.width <= w) continue;
+    const h = Math.round(bmp.height * w / bmp.width);
+    cv.width = w; cv.height = h;
+    ctx.drawImage(bmp, 0, 0, w, h);
+    res = await ZXingWASM.readBarcodes(ctx.getImageData(0, 0, w, h), { tryHarder: true, maxNumberOfSymbols: 3 });
+    found = res.filter(r => r.isValid && r.text);
+    if (found.length) LOG.push(tag + " 画像を幅" + w + "に縮めて読めた");
+  }
   if (!found.length) {
     box.insertAdjacentHTML("beforeend", "<p class='ng'>バーコードが見つかりませんでした</p>");
     LOG.push(tag + " 画像 バーコード=見つからない");
