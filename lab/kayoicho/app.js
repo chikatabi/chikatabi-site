@@ -604,4 +604,13 @@ renderHome();
 
 // 機内など電波の無いところでも開けるようにする（ファイル一式を端末にしまっておく）
 // 手元（localhost）で作っているときは使わない（古いファイルが出て、直したものが確かめられなくなるため）
-if ("serviceWorker" in navigator && location.hostname !== "localhost") navigator.serviceWorker.register("sw.js").catch(() => {});
+if ("serviceWorker" in navigator && location.hostname !== "localhost") {
+  navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then((r) => r.update()).catch(() => {});
+  // 新しい版が入ったら、1回だけ読み込み直して切り替える
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (reloaded) return;
+    reloaded = true;
+    location.reload();
+  });
+}
