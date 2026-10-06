@@ -1,6 +1,6 @@
 // 電波の無いところ（機内など）でも開けるように、ファイル一式を端末にしまっておく。
 // 更新を出すときは VERSION を上げる（上げないと古いファイルが出続ける）。
-const VERSION = "kayoicho-2026-10-06-5";
+const VERSION = "kayoicho-2026-10-06-6";
 const FILES = [
   "./", "index.html", "app.js", "style.css", "manifest.webmanifest",
   "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",

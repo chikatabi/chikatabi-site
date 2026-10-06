@@ -519,4 +519,5 @@ $("#sampleBtn").onclick = () => {
 renderHome();
 
 // 機内など電波の無いところでも開けるようにする（ファイル一式を端末にしまっておく）
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+// 手元（localhost）で作っているときは使わない（古いファイルが出て、直したものが確かめられなくなるため）
+if ("serviceWorker" in navigator && location.hostname !== "localhost") navigator.serviceWorker.register("sw.js").catch(() => {});

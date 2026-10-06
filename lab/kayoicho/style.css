@@ -27,9 +27,11 @@
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
+/* 画面は縦にだけ動かす。横にはずれないようにする（iPhoneで横にずれた。2026-10-06 CHIKA指摘） */
+html, body { max-width: 100%; overflow-x: hidden; overscroll-behavior-x: none; }
 body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.6 var(--sans); padding-bottom: 110px; }
 button, input, select, textarea { font: inherit; color: inherit; }
-.wrap { max-width: 640px; margin: 0 auto; padding: 0 16px; }
+.wrap { max-width: 640px; margin: 0 auto; padding: 0 16px; width: 100%; }
 
 /* 表紙: 夕暮れの空 */
 .hero { color: #fff; padding: calc(16px + env(safe-area-inset-top)) 0 72px;
@@ -107,7 +109,7 @@ button.primary { background: var(--navy); color: #fff; border: 0; border-radius:
   box-shadow: 0 8px 22px rgba(200,68,47,.38); cursor: pointer; }
 
 /* 入力画面 */
-.sheet { position: fixed; inset: 0; background: var(--paper); overflow-y: auto; z-index: 10; }
+.sheet { position: fixed; inset: 0; background: var(--paper); overflow-y: auto; overflow-x: hidden; overscroll-behavior-x: none; z-index: 10; }
 .sheet-head { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between;
   gap: 8px; padding: calc(10px + env(safe-area-inset-top)) 16px 10px; background: var(--card); border-bottom: 1px solid var(--line); }
 .sheet-body { padding-top: 14px; padding-bottom: 40px; }
@@ -132,7 +134,12 @@ details.sect > summary .filled { font: 14px var(--sans); color: var(--ink-3); le
   border: 1px solid var(--line); border-radius: 12px; background: var(--paper-2); color: var(--ink); }
 .sect textarea { min-height: 80px; }
 label.check { display: flex; gap: 8px; align-items: center; }
-.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.row2 > * { min-width: 0; }
+/* iPhoneの日付・時刻の欄は、そのままだと決めた幅より広がるので、見た目を自前にして幅に収める */
+.sect input, .sect select, .sect textarea { min-width: 0; max-width: 100%; }
+.sect input[type=date], .sect input[type=time] { -webkit-appearance: none; appearance: none; text-align: left; line-height: 1.6; }
+.sect input[type=date]::-webkit-date-and-time-value, .sect input[type=time]::-webkit-date-and-time-value { text-align: left; }
 .scan { display: block; border: 1.5px dashed var(--navy); border-radius: var(--r); padding: 12px; text-align: center; cursor: pointer; background: var(--navy-soft); margin-top: 14px; }
 .scan input { display: none; }
 .scan span { font-weight: 700; color: var(--navy); }
