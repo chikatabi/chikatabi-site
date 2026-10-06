@@ -45,7 +45,8 @@ export function mapSvg(geo, v, mode, colors) {
   // 陸地（世界地図は行った国を塗る。日本地図は日本だけ少し濃く）
   const land = polys.map(([iso, ring]) => {
     const fill = world ? (visited.has(iso) ? colors.got : colors.land) : (iso === "JP" ? colors.landJp : colors.land);
-    return `<path d="${ringPath(ring, X, Y, world)}" fill="${fill}"/>`;
+    const edge = !world && iso === "JP" ? ` stroke="${colors.emptyLine}" stroke-width="0.5" stroke-opacity=".5"` : "";
+    return `<path d="${ringPath(ring, X, Y, world)}" fill="${fill}"${edge}/>`;
   }).join("");
 
   // 路線の弧
@@ -68,7 +69,8 @@ export function mapSvg(geo, v, mode, colors) {
     for (const code of Object.keys(DOMESTIC_CITY)) {
       if (v.airports[code] || !geo.pos[code]) continue;
       const p = geo.pos[code];
-      dots.push(`<circle cx="${f1(X(p[1]))}" cy="${f1(Y(p[0]))}" r="2.2" fill="none" stroke="${colors.empty}" stroke-width="1"/>`);
+      // 日本列島を濃くしたので、まだの空港は「白い丸＋濃い縁」にして列島の上でも見えるようにする
+      dots.push(`<circle cx="${f1(X(p[1]))}" cy="${f1(Y(p[0]))}" r="2.6" fill="${colors.empty}" stroke="${colors.emptyLine}" stroke-width="1.1"/>`);
     }
   }
   for (const [code, n] of Object.entries(v.airports)) {

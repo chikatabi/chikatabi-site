@@ -2,7 +2,7 @@
 // 電波があるときは必ず最新を取りに行き、取れたらしまい直す。取れないときだけ、しまってあるものを出す。
 // （最初は「しまってあるものを先に出す」作りにしていて、更新がiPhoneに届かなかった。2026-10-06 CHIKA指摘）
 // 更新を出すときは VERSION を上げる。
-const VERSION = "kayoicho-2026-10-06-10";
+const VERSION = "kayoicho-2026-10-07-1";
 const FILES = [
   "./", "index.html", "app.js", "style.css", "manifest.webmanifest",
   "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",

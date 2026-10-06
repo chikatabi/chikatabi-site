@@ -367,7 +367,9 @@ async function renderMap(today) {
   const mode = state.mapMode === "world" ? "world" : "japan";
   const css = getComputedStyle(document.documentElement);
   const c = (n) => css.getPropertyValue(n).trim();
-  const colors = { land: c("--line"), landJp: c("--card"), got: c("--navy-soft"), route: c("--shu"), dot: c("--navy"), empty: c("--ink-3") };
+  // 日本列島をはっきりさせ、大陸・朝鮮半島は薄くする（2026-10-07 CHIKA指摘「日本の枠が薄すぎる」）
+  const colors = { land: c("--map-land"), landJp: c("--map-jp"), got: c("--navy-soft"), route: c("--shu"), dot: c("--navy"),
+    empty: c("--map-empty"), emptyLine: c("--map-empty-line") };
   if (mode === "world") colors.got = c("--sky-2");
   const extra = Object.keys(v.airports).filter((k) => geoData.pos[k] && geoData.pos[k][2] === "JP").length - v.conquered;
   const countries = Object.entries(v.countries).sort((a, b) => b[1] - a[1]);
@@ -381,7 +383,7 @@ async function renderMap(today) {
     <div style="margin-top:12px">${head}</div>
     <div class="mapbox">${mapSvg(geoData, v, mode, colors)}</div>
     ${mode === "japan" ? `<div class="legend"><span><i style="width:9px;height:9px;border-radius:9px;background:${colors.dot}"></i>行った空港</span>
-      <span><i style="width:7px;height:7px;border-radius:7px;border:1px solid ${colors.empty}"></i>まだの空港</span>
+      <span><i style="width:7px;height:7px;border-radius:7px;background:${colors.empty};border:1.5px solid ${colors.emptyLine}"></i>まだの空港</span>
       <span><i style="width:16px;height:3px;border-radius:3px;background:${colors.route}"></i>乗った路線（太いほど何度も）</span></div>
       <p class="note">制覇はANA公式の空港ガイド（国内線）に載っている${v.total}空港で数えます。${extra > 0 ? `ほかに${extra}空港へも行っています。` : ""}</p>`
     : `<div class="chips">${countries.map(([iso, n]) => `<span>${esc(COUNTRY_NAME[iso] || iso)}<b>×${n}</b></span>`).join("") || '<span>まだありません</span>'}</div>

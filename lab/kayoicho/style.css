@@ -215,6 +215,6 @@ label.check { display: flex; gap: 8px; align-items: center; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .chips span { background: var(--navy-soft); border-radius: 99px; padding: 3px 10px; font-size: 13px; }
 .chips b { font-family: var(--latin); margin-left: 2px; }
-:root { --sea: #E9EFF6; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --sea: #172030; } }
+:root { --sea: #EEF3F8; --map-jp: #AFC4DE; --map-land: #F6F4EF; --map-empty: #FFFFFF; --map-empty-line: #5D7395; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --sea: #141B27; --map-jp: #3B4F70; --map-land: #232A36; --map-empty: #141B27; --map-empty-line: #9FB3D1; } }
 [hidden] { display: none !important; }
