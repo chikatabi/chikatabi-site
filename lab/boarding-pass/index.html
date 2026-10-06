@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>搭乗券 読み取り試験</title>
+<style>
+  :root { --bg:#f7f6f2; --card:#fff; --ink:#1d1d1f; --sub:#6b6b70; --line:#e2e0da; --ok:#1a7f4b; --ng:#b3261e; --accent:#0b5cad; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg:#141416; --card:#1f1f22; --ink:#f2f2f4; --sub:#a0a0a8; --line:#33333a; --ok:#4cc38a; --ng:#ff6b60; --accent:#6aa9ff; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.7 -apple-system, "Hiragino Sans", sans-serif; }
+  main { max-width:720px; margin:0 auto; padding:16px; }
+  h1 { font-size:22px; margin:8px 0 4px; }
+  h2 { font-size:18px; margin:0 0 6px; }
+  p { margin:6px 0; }
+  .note { color:var(--sub); font-size:14px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin:14px 0; }
+  ol { padding-left:22px; margin:6px 0; }
+  label.btn { display:block; text-align:center; background:#0b5cad; color:#fff; border-radius:10px; padding:12px; margin-top:10px; font-weight:600; cursor:pointer; }
+  label.btn input { display:none; }
+  button { font:inherit; border:1px solid var(--line); background:var(--card); color:var(--ink); border-radius:10px; padding:10px 14px; cursor:pointer; }
+  #drop { border:2px dashed var(--line); border-radius:12px; padding:18px; text-align:center; color:var(--sub); margin-top:10px; }
+  #drop.over { border-color:var(--accent); color:var(--accent); }
+  .ok { color:var(--ok); font-weight:700; }
+  .ng { color:var(--ng); font-weight:700; }
+  table { width:100%; border-collapse:collapse; font-size:14px; margin:6px 0; }
+  td, th { border-bottom:1px solid var(--line); padding:5px 4px; text-align:left; vertical-align:top; word-break:break-all; }
+  th { color:var(--sub); font-weight:500; width:38%; }
+  pre { white-space:pre-wrap; word-break:break-all; font-size:13px; background:var(--bg); border-radius:8px; padding:10px; margin:6px 0; }
+  .result { border-top:3px solid var(--accent); }
+</style>
+</head>
+<body>
+<main>
+<h1>搭乗券 読み取り試験</h1>
+<p class="note">このページは試験用です。読み込んだ搭乗券は<strong>このスマホの中だけ</strong>で読み取り、どこにも送りません。</p>
+
+<div class="card">
+  <h2>試験1　Walletの「共有」→「ファイル」に保存して選ぶ</h2>
+  <ol>
+    <li>Walletで搭乗券を開き、右上の「…」から共有を探します。<br><span class="note">共有が見つからなければ、それが結果です（その航空会社は共有を止めています）。メモしてください。</span></li>
+    <li>共有の一覧から「"ファイル"に保存」を選びます。</li>
+    <li>下のボタンを押して、保存したファイルを選びます。</li>
+  </ol>
+  <label class="btn">ボタンA（Walletのファイルだけを選べる設定）<input type="file" id="inA" accept=".pkpass,.pkpasses,application/vnd.apple.pkpass,application/vnd.apple.pkpasses"></label>
+  <label class="btn">ボタンB（どんなファイルでも選べる設定）<input type="file" id="inB"></label>
+  <p class="note">AとBの両方を試してください。Aでファイルが灰色になって選べないことがあるので、その確認です。</p>
+</div>
+
+<div class="card">
+  <h2>試験2　スクリーンショットから読む</h2>
+  <ol>
+    <li>Walletで搭乗券を開き、バーコードが写るようにスクリーンショットを撮ります。</li>
+    <li>下のボタンで、その画像を選びます。紙の搭乗券をカメラで撮っても試せます。</li>
+  </ol>
+  <label class="btn">画像を選ぶ・撮る<input type="file" id="inImg" accept="image/*"></label>
+</div>
+
+<div class="card">
+  <h2>試験3　メールで自分に送る（パソコンで確認）</h2>
+  <ol>
+    <li>Walletの共有から「メール」を選び、自分あてに送ります。</li>
+    <li>パソコンでそのメールを開き、添付ファイルを保存します。</li>
+    <li>パソコンでこのページを開き、下の枠に添付ファイルを落とします。</li>
+  </ol>
+  <div id="drop">ここにファイルを落とす</div>
+  <p class="note">これが読めれば、「専用アドレスにメールで送ってもらう方式」が成り立ちます。</p>
+</div>
+
+<div id="out"></div>
+
+<div class="card">
+  <h2>結果を送る</h2>
+  <p>下のボタンで、試験の結果を文字でコピーできます。名前・予約番号・会員番号は伏せ字にしています。念のため、送る前に目で確かめてください。</p>
+  <button id="copy">結果をコピー</button> <span id="copied" class="note"></span>
+</div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/zxing-wasm@3.1.5/dist/iife/reader/index.js"></script>
+<script>
+// 試験の記録。コピー用の文字はここから作る（個人情報は伏せる）
+const LOG = [];
+LOG.push("端末: " + navigator.userAgent);
+
+const out = document.getElementById("out");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+
+// 名前・予約番号・会員番号らしい項目は、コピー用の文字では伏せる
+const SECRET = /name|passenger|氏名|名前|お名前|confirmation|pnr|予約|record|member|会員|frequent|mileage|番号|serial|token|ticket/i;
+const mask = s => { s = String(s ?? ""); return s.length <= 2 ? "**" : s[0] + "*".repeat(Math.min(s.length - 2, 12)) + s[s.length - 1]; };
+
+function card(title) {
+  const d = document.createElement("div");
+  d.className = "card result";
+  d.innerHTML = "<h2>" + esc(title) + "</h2>";
+  out.prepend(d);
+  return d;
+}
+function rows(obj) {
+  return "<table>" + Object.entries(obj).map(([k, v]) => "<tr><th>" + esc(k) + "</th><td>" + esc(v) + "</td></tr>").join("") + "</table>";
+}
+
+// ── IATA BCBP（搭乗券バーコードの国際規格 Resolution 792）を読む ──
+function parseBCBP(s) {
+  if (!s || s[0] !== "M" || s.length < 60) return null;
+  const legs = parseInt(s[1], 10);
+  if (!(legs >= 1 && legs <= 4)) return null;
+  const r = { 形式: "BCBP（国際規格）", 区間の数: legs, 名前: s.slice(2, 22).trim(), 電子券: s[22], 区間: [] };
+  let p = 23;
+  for (let i = 0; i < legs; i++) {
+    const L = {
+      予約番号: s.slice(p, p + 7).trim(),
+      出発: s.slice(p + 7, p + 10),
+      到着: s.slice(p + 10, p + 13),
+      航空会社: s.slice(p + 13, p + 16).trim(),
+      便名: s.slice(p + 16, p + 21).trim(),
+      日付_年初からの日数: s.slice(p + 21, p + 24),
+      区分コード: s.slice(p + 24, p + 25),
+      座席: s.slice(p + 25, p + 29).trim(),
+      搭乗順: s.slice(p + 29, p + 34).trim(),
+      状態: s.slice(p + 34, p + 35),
+    };
+    const condLen = parseInt(s.slice(p + 35, p + 37), 16) || 0;
+    const cond = s.slice(p + 37, p + 37 + condLen);
+    L.追加情報 = cond;
+    // 追加情報の中の会員番号（1区間目は先頭に共通部分がある）
+    try {
+      let c = cond, q = 0;
+      if (i === 0 && c[0] === ">") { const u = parseInt(c.slice(2, 4), 16) || 0; q = 4 + u; }
+      const repLen = parseInt(c.slice(q, q + 2), 16) || 0;
+      const rep = c.slice(q + 2, q + 2 + repLen);
+      if (rep.length >= 18) L.販売航空会社 = rep.slice(15, 18).trim();
+      if (rep.length >= 21) L.会員の航空会社 = rep.slice(18, 21).trim();
+      if (rep.length >= 37) L.会員番号 = rep.slice(21, 37).trim();
+    } catch (e) {}
+    const doy = parseInt(L.日付_年初からの日数, 10);
+    if (doy >= 1 && doy <= 366) {
+      const y = new Date().getFullYear();
+      const d = new Date(y, 0, doy);
+      L.日付_推定 = (d.getMonth() + 1) + "月" + d.getDate() + "日（年はバーコードに入っていない）";
+    }
+    r.区間.push(L);
+    p += 37 + condLen;
+  }
+  return r;
+}
+
+function showBarcodeText(box, text, fmt, tag) {
+  box.insertAdjacentHTML("beforeend", "<p><strong>バーコードの中身</strong>（" + esc(fmt) + "）</p><pre>" + esc(text) + "</pre>");
+  const b = parseBCBP(text);
+  if (b) {
+    box.insertAdjacentHTML("beforeend", "<p class='ok'>国際規格（BCBP）として読めました</p>");
+    b.区間.forEach((L, i) => box.insertAdjacentHTML("beforeend", "<p>区間" + (i + 1) + "</p>" + rows({ 名前: b.名前, ...L })));
+    LOG.push(tag + " バーコード=" + fmt + " BCBP=読めた 区間数=" + b.区間の数);
+    b.区間.forEach((L, i) => LOG.push(tag + "  区間" + (i + 1) + ": " + L.出発 + "→" + L.到着 + " " + L.航空会社 + L.便名 +
+      " 日数=" + L.日付_年初からの日数 + " 区分コード=" + L.区分コード + " 座席=" + L.座席 +
+      " 予約番号=" + mask(L.予約番号) + " 会員番号=" + (L.会員番号 ? mask(L.会員番号) : "なし") + " 追加情報の長さ=" + L.追加情報.length));
+  } else {
+    box.insertAdjacentHTML("beforeend", "<p class='ng'>国際規格（BCBP）の形ではありませんでした</p>");
+    LOG.push(tag + " バーコード=" + fmt + " BCBP=読めない 先頭10字=" + mask(text.slice(0, 10)) + " 長さ=" + text.length);
+  }
+}
+
+// ── Walletのファイル（.pkpass）を開く ──
+async function handlePkpass(buf, tag, box) {
+  const zip = await JSZip.loadAsync(buf);
+  // 複数の券（.pkpasses）は、中に .pkpass が入っている
+  const inner = Object.keys(zip.files).filter(n => n.toLowerCase().endsWith(".pkpass"));
+  if (inner.length) {
+    box.insertAdjacentHTML("beforeend", "<p>複数の券のまとめファイルでした（" + inner.length + "枚）</p>");
+    LOG.push(tag + " まとめファイル 枚数=" + inner.length);
+    for (const n of inner) await handlePkpass(await zip.file(n).async("arraybuffer"), tag + "[" + n + "]", box);
+    return;
+  }
+  const pj = zip.file("pass.json");
+  if (!pj) { box.insertAdjacentHTML("beforeend", "<p class='ng'>中に pass.json がありません</p>"); LOG.push(tag + " pass.jsonなし"); return; }
+  let txt = await pj.async("string");
+  txt = txt.replace(/^﻿/, "");
+  const pass = JSON.parse(txt);
+  const bp = pass.boardingPass || {};
+  box.insertAdjacentHTML("beforeend", "<p class='ok'>Walletのファイルを開けました</p>" + rows({
+    発行元: pass.organizationName,
+    説明: pass.description,
+    種類ID: pass.passTypeIdentifier,
+    乗り物: bp.transitType,
+    共有の禁止: pass.sharingProhibited === true ? "あり" : "なし（指定なし）",
+  }));
+  LOG.push(tag + " pkpass=開けた 発行元=" + pass.organizationName + " 種類ID=" + pass.passTypeIdentifier +
+    " 共有禁止=" + (pass.sharingProhibited === true) + " 中のファイル=" + Object.keys(zip.files).join(","));
+
+  // 券の表と裏に書いてある項目
+  const groups = ["headerFields", "primaryFields", "secondaryFields", "auxiliaryFields", "backFields"];
+  const fieldRows = {};
+  for (const g of groups) for (const f of (bp[g] || [])) {
+    const k = g.replace("Fields", "") + " / " + f.key + (f.label ? "（" + f.label + "）" : "");
+    fieldRows[k] = f.value;
+    const hide = SECRET.test(f.key + " " + (f.label || ""));
+    LOG.push(tag + "  項目 " + k + " = " + (hide ? mask(f.value) : String(f.value).slice(0, 80)));
+  }
+  box.insertAdjacentHTML("beforeend", "<p><strong>券に表示されている項目</strong></p>" + rows(fieldRows));
+
+  // 機械向けの情報（semantics）
+  const sem = { ...(pass.semantics || {}) };
+  if (Object.keys(sem).length) {
+    box.insertAdjacentHTML("beforeend", "<p><strong>機械向けの情報（semantics）</strong></p><pre>" + esc(JSON.stringify(sem, null, 1)) + "</pre>");
+    LOG.push(tag + "  semanticsのキー=" + Object.keys(sem).join(","));
+  } else LOG.push(tag + "  semantics=なし");
+
+  // バーコード
+  const codes = pass.barcodes || (pass.barcode ? [pass.barcode] : []);
+  if (!codes.length) { box.insertAdjacentHTML("beforeend", "<p class='ng'>バーコードの情報がありません</p>"); LOG.push(tag + "  バーコード=なし"); }
+  codes.slice(0, 1).forEach(c => showBarcodeText(box, c.message, c.format, tag + " "));
+}
+
+// ── 画像からバーコードを読む ──
+async function handleImage(file, tag, box) {
+  box.insertAdjacentHTML("beforeend", "<p>画像を読み取っています…</p>");
+  const res = await ZXingWASM.readBarcodes(file, { tryHarder: true, maxNumberOfSymbols: 3 });
+  const found = res.filter(r => r.isValid && r.text);
+  if (!found.length) {
+    box.insertAdjacentHTML("beforeend", "<p class='ng'>バーコードが見つかりませんでした</p>");
+    LOG.push(tag + " 画像 バーコード=見つからない");
+    return;
+  }
+  showBarcodeText(box, found[0].text, found[0].format, tag);
+}
+
+async function handleFile(file, via) {
+  const tag = "[" + via + "]";
+  const box = card(via + "：" + (file.name || "名前なし"));
+  box.insertAdjacentHTML("beforeend", rows({ ファイル名: file.name, 種類: file.type || "（不明）", 大きさ: file.size + " バイト" }));
+  LOG.push(tag + " ファイル選択=できた 名前の拡張子=" + (file.name.split(".").pop() || "") + " 種類=" + (file.type || "不明") + " 大きさ=" + file.size);
+  try {
+    const buf = await file.arrayBuffer();
+    const head = new Uint8Array(buf.slice(0, 4));
+    const isZip = head[0] === 0x50 && head[1] === 0x4b;
+    if (isZip) await handlePkpass(buf, tag, box);
+    else if ((file.type || "").startsWith("image/") || /\.(png|jpe?g|heic|webp)$/i.test(file.name)) await handleImage(file, tag, box);
+    else if (/pdf/i.test(file.type) || /\.pdf$/i.test(file.name)) {
+      box.insertAdjacentHTML("beforeend", "<p class='ng'>PDFはこの試験では読みません。スクリーンショットで試験2をしてください。</p>");
+      LOG.push(tag + " PDF（未対応）");
+    } else {
+      box.insertAdjacentHTML("beforeend", "<p class='ng'>Walletのファイルでも画像でもありませんでした</p>");
+      LOG.push(tag + " 不明な形式");
+    }
+  } catch (e) {
+    box.insertAdjacentHTML("beforeend", "<p class='ng'>エラー: " + esc(e.message) + "</p>");
+    LOG.push(tag + " エラー=" + e.message);
+  }
+}
+
+for (const [id, via] of [["inA", "試験1-A"], ["inB", "試験1-B"], ["inImg", "試験2"]]) {
+  document.getElementById(id).addEventListener("change", e => {
+    const f = e.target.files[0];
+    if (f) handleFile(f, via);
+    e.target.value = "";
+  });
+}
+
+const drop = document.getElementById("drop");
+["dragenter", "dragover"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => { for (const f of e.dataTransfer.files) handleFile(f, "試験3"); });
+
+document.getElementById("copy").addEventListener("click", async () => {
+  const text = LOG.join("\n");
+  try { await navigator.clipboard.writeText(text); document.getElementById("copied").textContent = "コピーしました"; }
+  catch (e) {
+    const t = document.createElement("textarea"); t.value = text; document.body.append(t); t.select();
+    document.execCommand("copy"); t.remove(); document.getElementById("copied").textContent = "コピーしました";
+  }
+});
+</script>
+</body>
+</html>
