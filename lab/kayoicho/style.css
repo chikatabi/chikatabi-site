@@ -120,13 +120,13 @@ button.primary { background: var(--navy); color: #fff; border: 0; border-radius:
 details.sect { border: 1px solid var(--line); border-radius: var(--r); background: var(--card); margin: 12px 0; padding: 0 14px; min-width: 0; }
 details.sect[open] { padding-bottom: 14px; }
 details.sect > summary { list-style: none; display: flex; justify-content: space-between; align-items: center; cursor: pointer;
-  padding: 13px 0; font: 600 15px var(--mincho); letter-spacing: .1em; color: var(--navy); }
+  min-height: 56px; padding: 14px 0; font: 600 18px var(--mincho); letter-spacing: .1em; color: var(--navy); }
 details.sect > summary::-webkit-details-marker { display: none; }
-details.sect > summary::after { content: ""; width: 9px; height: 9px; border-right: 2px solid var(--ink-3); border-bottom: 2px solid var(--ink-3);
+details.sect > summary::after { content: ""; width: 11px; height: 11px; border-right: 2.5px solid var(--ink-2); border-bottom: 2.5px solid var(--ink-2);
   transform: rotate(45deg); margin-right: 4px; transition: transform .2s; }
 details.sect[open] > summary::after { transform: rotate(-135deg); }
-details.sect > summary .filled { font: 12px var(--sans); color: var(--ink-3); letter-spacing: 0; margin-left: auto; margin-right: 12px; }
-.sect label { display: block; font-size: 13px; color: var(--ink-2); margin-top: 10px; min-width: 0; }
+details.sect > summary .filled { font: 14px var(--sans); color: var(--ink-3); letter-spacing: 0; margin-left: auto; margin-right: 12px; }
+.sect label { display: block; font-size: 14px; color: var(--ink-2); margin-top: 10px; min-width: 0; }
 .sect input:not([type=checkbox]):not([type=radio]), .sect select, .sect textarea {
   display: block; width: 100%; margin-top: 4px; min-height: var(--tap); padding: 8px 10px;
   border: 1px solid var(--line); border-radius: 12px; background: var(--paper-2); color: var(--ink); }
