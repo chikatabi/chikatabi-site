@@ -179,6 +179,19 @@ function readForm() {
   return e;
 }
 
+// 折りたたみ: 「基本」と「フライトの感想」はいつも開く。ほかは、書いてある項目があれば開いて、閉じているときは件数を出す
+function updateSections(openFilled) {
+  form.querySelectorAll("details.sect").forEach((d) => {
+    const name = d.querySelector("summary").firstChild.textContent.trim();
+    if (name === "基本" || name === "フライトの感想") return;
+    const n = [...d.querySelectorAll("input, textarea")].filter((el) => el.type !== "checkbox" && el.value.trim()).length;
+    if (openFilled) d.open = n > 0;
+    let b = d.querySelector("summary .filled");
+    if (!b) { b = document.createElement("span"); b.className = "filled"; d.querySelector("summary").append(b); }
+    b.textContent = n ? `${n}項目` : "";
+  });
+}
+
 function writeForm(e) {
   fillSelects(e);
   for (const el of form.elements) {
@@ -189,6 +202,7 @@ function writeForm(e) {
   }
   showKind(e.kind);
   preview();
+  updateSections(true);
 }
 
 function showKind(kind) {
@@ -231,6 +245,7 @@ form.addEventListener("change", (ev) => {
   drawPreview();
 });
 form.addEventListener("input", (ev) => {
+  updateSections(false);
   if (ev.target.name === "fromCode" || ev.target.name === "toCode") ev.target.value = ev.target.value.toUpperCase();
   preview();
   drawPreview();
@@ -403,8 +418,15 @@ function loadZXing() {
   if (!zxingReady) {
     zxingReady = new Promise((res, rej) => {
       const s = document.createElement("script");
-      s.src = "https://cdn.jsdelivr.net/npm/zxing-wasm@3.1.5/dist/iife/reader/index.js";
-      s.onload = () => res(window.ZXingWASM);
+      // 機内の電波が無いところでも読めるよう、部品はアプリと一緒に置いてある（vendor/）
+      s.src = "vendor/zxing-reader.js";
+      s.onload = () => {
+        const wasm = new URL("vendor/zxing_reader.wasm", location.href).href;
+        window.ZXingWASM.prepareZXingModule({
+          overrides: { locateFile: (path, prefix) => (path.endsWith(".wasm") ? wasm : prefix + path) },
+        });
+        res(window.ZXingWASM);
+      };
       s.onerror = () => { zxingReady = null; rej(new Error("読み取り部品を読み込めませんでした")); };
       document.head.append(s);
     });
@@ -495,3 +517,6 @@ $("#sampleBtn").onclick = () => {
 };
 
 renderHome();
+
+// 機内など電波の無いところでも開けるようにする（ファイル一式を端末にしまっておく）
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});

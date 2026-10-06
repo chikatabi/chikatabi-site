@@ -7,6 +7,10 @@
 <meta name="theme-color" content="#0E2347">
 <title>空の通い帳｜ANAフライトログ</title>
 <link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="空の通い帳">
 </head>
 <body>
 <header class="hero">
@@ -103,8 +107,8 @@
       </div>
     </section>
 
-    <fieldset>
-      <legend>フライトの感想</legend>
+    <details class="sect" open>
+      <summary>フライトの感想</summary>
       <div class="faces" id="faces" role="radiogroup" aria-label="フライトの感想"></div>
       <div class="sign-head">
         <span>Signature</span>
@@ -112,7 +116,7 @@
       </div>
       <canvas class="signpad" id="signPad" aria-label="Signature を書く欄"></canvas>
       <p class="note">指やペンで書けます。思い出の1枚の左下にも載ります。</p>
-    </fieldset>
+    </details>
 
     <label class="scan">
       <input type="file" id="scanInput" accept="image/*">
@@ -121,8 +125,8 @@
     </label>
     <p class="scanmsg" id="scanMsg" hidden></p>
 
-    <fieldset>
-      <legend>基本</legend>
+    <details class="sect" open>
+      <summary>基本</summary>
       <div class="row2">
         <label>日付<input type="date" name="date" required></label>
         <label>便名<input name="flightNo" placeholder="NH794" autocapitalize="characters"></label>
@@ -151,18 +155,18 @@
       <label>座席<input name="seatNo" placeholder="5H" autocapitalize="characters"></label>
 
       <div class="pp" id="ppPreview"></div>
-    </fieldset>
+    </details>
 
-    <fieldset>
-      <legend>機体</legend>
+    <details class="sect">
+      <summary>機体</summary>
       <div class="row2">
         <label>機材<input name="aircraft" placeholder="B787-8"></label>
         <label>機体記号<input name="registration" placeholder="JA801A" autocapitalize="characters"></label>
       </div>
-    </fieldset>
+    </details>
 
-    <fieldset>
-      <legend>時刻</legend>
+    <details class="sect">
+      <summary>時刻</summary>
       <div class="row2">
         <label>搭乗口<input name="gate" placeholder="3B"></label>
         <label>遅延<input name="delay" placeholder="15分"></label>
@@ -172,25 +176,25 @@
         <label>実際の到着<input type="time" name="arrActual"></label>
       </div>
       <label>飛行時間<input name="flightTime" placeholder="1時間25分"></label>
-    </fieldset>
+    </details>
 
-    <fieldset>
-      <legend>飛行</legend>
+    <details class="sect">
+      <summary>飛行</summary>
       <div class="row2">
         <label>離陸した滑走路<input name="runwayDep" placeholder="RWY01"></label>
         <label>着陸した滑走路<input name="runwayArr" placeholder="RWY34R"></label>
       </div>
       <label>巡航高度<input name="cruiseAlt" placeholder="37,000ft"></label>
-    </fieldset>
+    </details>
 
-    <fieldset>
-      <legend>思い出</legend>
+    <details class="sect">
+      <summary>思い出</summary>
       <div class="row2">
         <label>天気<input name="weather" placeholder="晴れ"></label>
         <label>ラウンジ<input name="lounge" placeholder="ANA SUITE LOUNGE"></label>
       </div>
       <label>メモ<textarea name="memo" rows="3" placeholder="富士山がよく見えた"></textarea></label>
-    </fieldset>
+    </details>
 
     <button type="button" class="ghost danger" id="deleteBtn" hidden>この記録を消す</button>
   </form>
