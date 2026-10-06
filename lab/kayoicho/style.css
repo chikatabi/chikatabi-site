@@ -179,4 +179,28 @@ label.check { display: flex; gap: 8px; align-items: center; }
 .price-sub { text-align: center; color: var(--ink-2); font-size: 14px; margin: 6px 0 12px; }
 .pay ul { margin: 0; padding-left: 20px; line-height: 2; }
 .pay .ghost { margin-top: 12px; }
+/* 上の白い枠（スワイプで切り替え） */
+.carousel { padding: 0; overflow: hidden; transition: height .25s ease; }
+.slides { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; align-items: flex-start; overscroll-behavior-x: contain; }
+.slides::-webkit-scrollbar { display: none; }
+.slide { flex: 0 0 100%; min-width: 0; scroll-snap-align: start; padding: 18px; }
+.dots { display: flex; justify-content: center; gap: 6px; padding: 0 0 12px; }
+.dots span { width: 7px; height: 7px; border-radius: 99px; background: var(--line); transition: all .2s; }
+.dots span.on { width: 18px; background: var(--navy); }
+.swipe-hint { font-size: 12px; color: var(--ink-3); text-align: right; margin-top: 8px; }
+
+/* 機材の図鑑 */
+.fleet-head { display: flex; justify-content: space-between; align-items: baseline; }
+.fleet-head h3 { margin: 0; font: 600 17px var(--mincho); letter-spacing: .06em; }
+.fleet-head .cnt { font: 700 20px var(--latin); }
+.fleet-head .cnt small { font-size: 13px; color: var(--ink-2); font-weight: 500; }
+.fleet-group { font-size: 12px; color: var(--ink-2); margin: 14px 0 6px; }
+.fleet { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.plane { position: relative; border-radius: 12px; background: var(--paper-2); padding: 6px 4px 6px; text-align: center; color: #C3C8D0; }
+.plane.got { color: var(--navy); background: var(--navy-soft); }
+.plane .nm { display: block; font-size: 11px; line-height: 1.3; color: var(--ink-3); margin-top: 2px; }
+.plane.got .nm { color: var(--ink); font-weight: 700; }
+.plane .times { position: absolute; top: 4px; right: 6px; font: 700 11px var(--latin); color: var(--shu); }
+.plane .got-stamp { position: absolute; top: 3px; left: 4px; font: 600 10px var(--mincho); color: var(--shu); border: 1.3px solid var(--shu); border-radius: 3px; padding: 0 3px; transform: rotate(-6deg); background: var(--card); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .plane { color: #3A414D; } }
 [hidden] { display: none !important; }

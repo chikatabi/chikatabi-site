@@ -32,7 +32,14 @@
 </header>
 
 <main class="wrap" id="home">
-  <section class="card summary" id="summary"></section>
+  <!-- 上の白い枠: 左へスワイプで「目標」→「機材の図鑑」 -->
+  <section class="card summary carousel">
+    <div class="slides" id="slides">
+      <div class="slide" id="summary"></div>
+      <div class="slide" id="fleetSlide"></div>
+    </div>
+    <div class="dots" id="dots"><span class="on"></span><span></span></div>
+  </section>
   <div id="notice"></div>
   <section id="logList" class="log"></section>
 
@@ -160,7 +167,7 @@
     <details class="sect">
       <summary>機体</summary>
       <div class="row2">
-        <label>機材<input name="aircraft" placeholder="B787-8"></label>
+        <label>機材<input name="aircraft" placeholder="B787-8" list="fleetList"></label>
         <label>機体記号<input name="registration" placeholder="JA801A" autocapitalize="characters"></label>
       </div>
     </details>
@@ -200,6 +207,7 @@
   </form>
 </div>
 
+<datalist id="fleetList"></datalist>
 <script type="module" src="app.js"></script>
 </body>
 </html>

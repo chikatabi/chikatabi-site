@@ -10,6 +10,8 @@ import { RATINGS, faceSvg } from "./lib/rating.js";
 import { makeSignPad } from "./lib/signpad.js";
 import { FREE_LIMIT, canAdd, freeLeft } from "./lib/plan.js";
 import { pack, unpack } from "./lib/backup.js";
+import { FLEET, fleetCounts } from "./lib/fleet.js";
+import { silhouetteSvg } from "./lib/silhouette.js";
 
 // ── 保存（試作のあいだはこの端末のブラウザの中だけ） ──
 const KEY = "kayoicho.v1";
@@ -112,6 +114,9 @@ function renderHome() {
     </div>
     ${s.incomplete ? `<div class="warn">運賃や予約クラスが未選択の記録が${s.incomplete}件あります。PPに入っていません。</div>` : ""}`;
   $("#targetSel").onchange = (ev) => { state.target = ev.target.value; save(); renderHome(); };
+  $("#summary").insertAdjacentHTML("beforeend", `<div class="swipe-hint">左へスワイプで機材の図鑑 →</div>`);
+  renderFleet(today);
+  fitCarousel();
 
   const rows = state.entries.filter((e) => (e.date || "").startsWith(String(year)))
     .sort((a, b) => (b.date + (b.depActual || "")).localeCompare(a.date + (a.depActual || "")));
@@ -324,6 +329,43 @@ $("#newBtn").onclick = () => {
 };
 $("#payClose").onclick = () => { $("#paywall").hidden = true; };
 $("#payTest").onclick = () => { state.paid = true; save(); $("#paywall").hidden = true; renderHome(); };
+
+// ── 機材の図鑑（上の枠の2枚目） ──
+// 一度でも乗った（今日までの記録で機材が図鑑の機種と結びついた）ものに印を付ける。年は問わない。
+function renderFleet(today) {
+  const got = fleetCounts(state.entries, today);
+  const n = FLEET.filter((p) => got[p.id]).length;
+  const tile = (p) => {
+    const c = got[p.id] || 0;
+    return `<div class="plane${c ? " got" : ""}">
+      ${c ? '<span class="got-stamp">搭乗</span>' : ""}${c ? `<span class="times">×${c}</span>` : ""}
+      ${silhouetteSvg(p)}<span class="nm">${esc(p.name.replace("ボーイング", "").replace("エアバス ", ""))}</span></div>`;
+  };
+  $("#fleetSlide").innerHTML = `
+    <div class="fleet-head"><h3>機材の図鑑</h3><span class="cnt">${n}<small> / ${FLEET.length} 機種</small></span></div>
+    <div class="track" style="margin-top:8px"><div class="fill" style="width:${(n / FLEET.length * 100).toFixed(1)}%"></div></div>
+    <div class="fleet-group">ANA・ANAウイングス</div>
+    <div class="fleet">${FLEET.filter((p) => p.group === "ana").map(tile).join("")}</div>
+    <div class="fleet-group">コードシェア便で乗れる機材</div>
+    <div class="fleet">${FLEET.filter((p) => p.group === "partner").map(tile).join("")}</div>
+    <p class="note">記録の「機材」に書いた機種に印が付きます。機材の欄は候補から選ぶと確実です。</p>`;
+}
+
+// 上の枠の高さを、いま見えている1枚に合わせる（2枚の高さが違うため）
+let slideIndex = 0;
+function fitCarousel() {
+  const slides = $("#slides").children;
+  const cur = slides[slideIndex];
+  if (cur) $(".carousel").style.height = cur.offsetHeight + 26 + "px";
+  [...$("#dots").children].forEach((d, i) => d.classList.toggle("on", i === slideIndex));
+}
+$("#slides").addEventListener("scroll", () => {
+  const el = $("#slides");
+  const i = Math.round(el.scrollLeft / el.clientWidth);
+  if (i !== slideIndex) { slideIndex = i; fitCarousel(); }
+}, { passive: true });
+window.addEventListener("resize", fitCarousel);
+$("#fleetList").innerHTML = FLEET.map((p) => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join("");
 
 // ── お知らせ（無料の残り・書き出しのすすめ） ──
 function renderNotice(today) {
