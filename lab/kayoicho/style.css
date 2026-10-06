@@ -203,4 +203,18 @@ label.check { display: flex; gap: 8px; align-items: center; }
 .plane .times { position: absolute; top: 4px; right: 6px; font: 700 11px var(--latin); color: var(--shu); }
 .plane .got-stamp { position: absolute; top: 3px; left: 4px; font: 600 10px var(--mincho); color: var(--shu); border: 1.3px solid var(--shu); border-radius: 3px; padding: 0 3px; transform: rotate(-6deg); background: var(--card); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .plane { color: #3A414D; } }
+/* 空の地図（3枚目） */
+.seg { display: inline-flex; background: var(--paper-2); border: 1px solid var(--line); border-radius: 99px; padding: 2px; }
+.seg button { border: 0; background: none; border-radius: 99px; padding: 5px 14px; font-size: 14px; cursor: pointer; color: var(--ink-2); }
+.seg button.on { background: var(--navy); color: #fff; font-weight: 700; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .seg button.on { color: #10131A; } }
+.mapbox { margin-top: 10px; border-radius: 14px; overflow: hidden; background: var(--sea); }
+.mapbox svg { display: block; }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); margin-top: 8px; }
+.legend i { display: inline-block; vertical-align: -1px; margin-right: 4px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.chips span { background: var(--navy-soft); border-radius: 99px; padding: 3px 10px; font-size: 13px; }
+.chips b { font-family: var(--latin); margin-left: 2px; }
+:root { --sea: #E9EFF6; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --sea: #172030; } }
 [hidden] { display: none !important; }

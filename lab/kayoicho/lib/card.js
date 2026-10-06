@@ -69,7 +69,7 @@ function drawMap(ctx, geo, a, b, box) {
   ctx.strokeStyle = "rgba(255,255,255,0.85)";
   ctx.lineWidth = 2.2;
   ctx.lineJoin = "round";
-  for (const ring of polys) {
+  for (const [, ring] of polys) {
     for (const shift of [0, 360]) {
       let inView = false;
       ctx.beginPath();

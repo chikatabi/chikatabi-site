@@ -12,6 +12,8 @@ import { FREE_LIMIT, canAdd, freeLeft } from "./lib/plan.js";
 import { pack, unpack } from "./lib/backup.js";
 import { FLEET, fleetCounts } from "./lib/fleet.js";
 import { silhouetteSvg } from "./lib/silhouette.js";
+import { visits, COUNTRY_NAME } from "./lib/visits.js";
+import { mapSvg } from "./lib/mapview.js";
 
 // ── 保存（試作のあいだはこの端末のブラウザの中だけ） ──
 const KEY = "kayoicho.v1";
@@ -116,6 +118,7 @@ function renderHome() {
   $("#targetSel").onchange = (ev) => { state.target = ev.target.value; save(); renderHome(); };
   $("#summary").insertAdjacentHTML("beforeend", `<div class="swipe-hint">左へスワイプで機材の図鑑 →</div>`);
   renderFleet(today);
+  renderMap(today);
   fitCarousel();
 
   const rows = state.entries.filter((e) => (e.date || "").startsWith(String(year)))
@@ -351,12 +354,50 @@ function renderFleet(today) {
     <p class="note">記録の「機材」に書いた機種に印が付きます。機材の欄は候補から選ぶと確実です。</p>`;
 }
 
+// ── 空の地図（上の枠の3枚目） ──
+// 地図のデータ（lib/geo.js、約270KB）は、ここで初めて読み込む
+let geoData = null;
+async function renderMap(today) {
+  const box = $("#mapSlide");
+  if (!geoData) {
+    box.innerHTML = `<div class="fleet-head"><h3>空の地図</h3></div><p class="note">地図を読み込んでいます…</p>`;
+    geoData = (await import("./lib/geo.js")).GEO;
+  }
+  const v = visits(state.entries, geoData.pos, today);
+  const mode = state.mapMode === "world" ? "world" : "japan";
+  const css = getComputedStyle(document.documentElement);
+  const c = (n) => css.getPropertyValue(n).trim();
+  const colors = { land: c("--line"), landJp: c("--card"), got: c("--navy-soft"), route: c("--shu"), dot: c("--navy"), empty: c("--ink-3") };
+  if (mode === "world") colors.got = c("--sky-2");
+  const extra = Object.keys(v.airports).filter((k) => geoData.pos[k] && geoData.pos[k][2] === "JP").length - v.conquered;
+  const countries = Object.entries(v.countries).sort((a, b) => b[1] - a[1]);
+  const head = mode === "japan"
+    ? `<div class="fleet-head"><span>空港の制覇</span><span class="cnt">${v.conquered}<small> / ${v.total} 空港</small></span></div>
+       <div class="track" style="margin-top:6px"><div class="fill" style="width:${(v.conquered / v.total * 100).toFixed(1)}%"></div></div>`
+    : `<div class="fleet-head"><span>行った国・地域</span><span class="cnt">${countries.length}</span></div>`;
+  box.innerHTML = `
+    <div class="fleet-head"><h3>空の地図</h3>
+      <span class="seg"><button data-m="japan" class="${mode === "japan" ? "on" : ""}">日本</button><button data-m="world" class="${mode === "world" ? "on" : ""}">世界</button></span></div>
+    <div style="margin-top:12px">${head}</div>
+    <div class="mapbox">${mapSvg(geoData, v, mode, colors)}</div>
+    ${mode === "japan" ? `<div class="legend"><span><i style="width:9px;height:9px;border-radius:9px;background:${colors.dot}"></i>行った空港</span>
+      <span><i style="width:7px;height:7px;border-radius:7px;border:1px solid ${colors.empty}"></i>まだの空港</span>
+      <span><i style="width:16px;height:3px;border-radius:3px;background:${colors.route}"></i>乗った路線（太いほど何度も）</span></div>
+      <p class="note">制覇はANA公式の空港ガイド（国内線）に載っている${v.total}空港で数えます。${extra > 0 ? `ほかに${extra}空港へも行っています。` : ""}</p>`
+    : `<div class="chips">${countries.map(([iso, n]) => `<span>${esc(COUNTRY_NAME[iso] || iso)}<b>×${n}</b></span>`).join("") || '<span>まだありません</span>'}</div>
+      <p class="note">数字は、その国・地域に着いた回数です。</p>`}`;
+  box.querySelectorAll(".seg button").forEach((b) => (b.onclick = () => {
+    state.mapMode = b.dataset.m; save(); renderMap(todayStr()).then(fitCarousel);
+  }));
+  fitCarousel();
+}
+
 // 上の枠の高さを、いま見えている1枚に合わせる（2枚の高さが違うため）
 let slideIndex = 0;
 function fitCarousel() {
   const slides = $("#slides").children;
   const cur = slides[slideIndex];
-  if (cur) $(".carousel").style.height = cur.offsetHeight + 26 + "px";
+  if (cur) $(".carousel").style.height = cur.offsetHeight + 30 + "px";
   [...$("#dots").children].forEach((d, i) => d.classList.toggle("on", i === slideIndex));
 }
 $("#slides").addEventListener("scroll", () => {
@@ -365,6 +406,11 @@ $("#slides").addEventListener("scroll", () => {
   if (i !== slideIndex) { slideIndex = i; fitCarousel(); }
 }, { passive: true });
 window.addEventListener("resize", fitCarousel);
+// 地図の読み込みなどで中身の高さが変わったら、枠の高さも合わせ直す
+if ("ResizeObserver" in window) {
+  const ro = new ResizeObserver(() => fitCarousel());
+  for (const el of $("#slides").children) ro.observe(el);
+}
 $("#fleetList").innerHTML = FLEET.map((p) => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join("");
 
 // ── お知らせ（無料の残り・書き出しのすすめ） ──
