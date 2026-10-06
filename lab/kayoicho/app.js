@@ -8,6 +8,8 @@ import { drawCard, CARD_W, CARD_H } from "./lib/card.js";
 import { getPhoto, putPhoto, deletePhoto, shrink } from "./lib/photos.js";
 import { RATINGS, faceSvg } from "./lib/rating.js";
 import { makeSignPad } from "./lib/signpad.js";
+import { FREE_LIMIT, canAdd, freeLeft, shouldRemindBackup } from "./lib/plan.js";
+import { pack, unpack } from "./lib/backup.js";
 
 // ── 保存（試作のあいだはこの端末のブラウザの中だけ） ──
 const KEY = "kayoicho.v1";
@@ -17,7 +19,7 @@ function load() {
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {}
 }
-const state = Object.assign({ entries: [], target: "diamond", status: "regular", card: "amc" }, load());
+let state = Object.assign({ entries: [], target: "diamond", status: "regular", card: "amc", paid: false, lastExport: null }, load());
 
 const $ = (s) => document.querySelector(s);
 const fmt = (n) => Number(n || 0).toLocaleString("ja-JP");
@@ -79,6 +81,8 @@ function renderHome() {
     <div class="label">${year}年に乗った分のPP</div>
     <div class="big">${fmt(s.pp)}<small>PP</small></div>
     <div class="planned">${s.planned ? `予定の${s.planned}区間を入れると ${fmt(s.pp + s.ppPlanned)} PP` : "&nbsp;"}</div>`;
+
+  renderNotice(today);
 
   $("#summary").innerHTML = `
     <div class="target">
@@ -299,11 +303,70 @@ async function openSheet(id) {
 }
 function closeSheet() { $("#sheet").hidden = true; }
 
-$("#newBtn").onclick = () => openSheet(null);
+$("#newBtn").onclick = () => {
+  if (!canAdd(state.entries.length, state.paid)) { $("#paywall").hidden = false; return; }
+  openSheet(null);
+};
+$("#payClose").onclick = () => { $("#paywall").hidden = true; };
+$("#payTest").onclick = () => { state.paid = true; save(); $("#paywall").hidden = true; renderHome(); };
+
+// ── お知らせ（無料の残り・書き出しのすすめ） ──
+function renderNotice(today) {
+  const n = state.entries.length;
+  const left = freeLeft(n, state.paid);
+  let html = "";
+  if (shouldRemindBackup(n, state.lastExport, today)) {
+    html += `<div class="notice"><span>${state.lastExport ? "前の書き出しから30日たちました。" : "記録がたまってきました。"}控えに書き出しておきましょう。</span>
+      <button class="primary small" id="noticeExport">書き出す</button></div>`;
+  }
+  if (left !== null && left <= 5) {
+    html += `<div class="notice"><span>${left > 0 ? `無料で書けるのは、あと${left}本です。` : `無料の${FREE_LIMIT}本を書き終えました。`}</span>
+      <button class="ghost small" id="noticePay">有料版を見る</button></div>`;
+  }
+  $("#notice").innerHTML = html;
+  const ex = $("#noticeExport"); if (ex) ex.onclick = exportBackup;
+  const pb = $("#noticePay"); if (pb) pb.onclick = () => { $("#paywall").hidden = false; };
+  $("#lastExport").textContent = state.lastExport ? `最後に書き出した日: ${state.lastExport.replaceAll("-", "/")}` : "まだ書き出していません。";
+  $("#planNote").textContent = state.paid ? "有料版です。何本でも書けます。" : `無料版です。通算${FREE_LIMIT}本まで書けます（いま${n}本）。`;
+}
+
+// ── 書き出し・読み込み ──
+async function exportBackup() {
+  const today = todayStr();
+  const text = await pack(state, today);
+  const name = `空の通い帳_${today}.json`;
+  const file = new File([text], name, { type: "application/json" });
+  let done = false;
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file] }); done = true; } catch (err) { if (err.name === "AbortError") return; }
+  }
+  if (!done) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(file); a.download = name;
+    document.body.append(a); a.click(); a.remove();
+  }
+  state.lastExport = today; save(); renderHome();
+}
+$("#exportBtn").onclick = exportBackup;
+$("#importInput").addEventListener("change", async (ev) => {
+  const f = ev.target.files[0];
+  ev.target.value = "";
+  if (!f) return;
+  try {
+    const r = await unpack(await f.text(), state);
+    state = r.state; save();
+    thumbUrls.clear();
+    renderHome();
+    alert(`読み込みました。新しい記録 ${r.added}本、上書きした記録 ${r.updated}本。`);
+  } catch (err) {
+    alert(err.message);
+  }
+});
 $("#closeBtn").onclick = closeSheet;
 $("#saveBtn").onclick = async () => {
   const e = readForm();
   if (!e.date) { alertField("日付を入れてください"); return; }
+  if (!editingId && !canAdd(state.entries.length, state.paid)) { closeSheet(); $("#paywall").hidden = false; return; }
   const id = editingId || Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   const prev = state.entries.find((x) => x.id === id);
   e.hasPhoto = photo.changed ? !!photo.blob : !!(prev && prev.hasPhoto);
@@ -410,6 +473,7 @@ $("#prevYear").onclick = () => { year--; renderHome(); };
 $("#nextYear").onclick = () => { year++; renderHome(); };
 $("#clearBtn").onclick = () => {
   if (!confirm("この端末の記録を全部消します。よろしいですか？")) return;
+  for (const e of state.entries) { deletePhoto(e.id); deletePhoto(e.id + "#sign"); }
   state.entries = []; save(); renderHome();
 };
 // 見本: 区間と運賃は実際の搭乗実績でPPを確かめたもの。日付は見本用に変えてある（公開URLで個人の旅程を出さない）

@@ -147,4 +147,22 @@ label.check { display: flex; gap: 8px; align-items: center; }
   border: 1px dashed var(--line); background:
   linear-gradient(transparent 128px, var(--line) 128px, var(--line) 129px, transparent 129px), #FFFEFB; }
 .entry .face { display: inline-block; vertical-align: -5px; margin-left: 6px; }
+.backup h3 { margin: 0; font: 600 16px var(--mincho); letter-spacing: .06em; }
+.backup-btns { display: flex; gap: 10px; margin-top: 12px; }
+.backup-btns .primary { min-height: 40px; }
+.ghost-btn { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 12px; min-height: 40px; padding: 0 16px; font-size: 14px; cursor: pointer; }
+.ghost-btn input { display: none; }
+.notice { display: flex; gap: 10px; align-items: center; justify-content: space-between; background: var(--navy-soft); border-radius: 14px; padding: 10px 14px; margin: 12px 0; font-size: 13px; }
+.notice button { flex: none; }
+.free-left { text-align: center; font-size: 12px; color: var(--ink-2); margin: 4px 0 0; }
+.pay { padding-top: 20px; padding-bottom: 40px; }
+.pay-hero { text-align: center; padding: 10px 0 6px; }
+.pay-hero h2 { font: 600 24px/1.4 var(--mincho); margin: 14px 0 6px; }
+.pay-hero p { color: var(--ink-2); margin: 0; }
+.seal.big { width: 64px; height: 64px; font-size: 34px; margin: 0 auto; background: var(--card); }
+.price { font: 700 52px/1 var(--latin); text-align: center; margin-top: 6px; }
+.price small { font: 600 20px var(--sans); margin-left: 4px; }
+.price-sub { text-align: center; color: var(--ink-2); font-size: 14px; margin: 6px 0 12px; }
+.pay ul { margin: 0; padding-left: 20px; line-height: 2; }
+.pay .ghost { margin-top: 12px; }
 [hidden] { display: none !important; }

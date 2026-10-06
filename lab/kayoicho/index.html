@@ -29,7 +29,19 @@
 
 <main class="wrap" id="home">
   <section class="card summary" id="summary"></section>
+  <div id="notice"></div>
   <section id="logList" class="log"></section>
+
+  <section class="card backup">
+    <h3>記録の書き出し・読み込み</h3>
+    <p class="note">記録と写真は、このiPhoneの中だけに保存しています。機種変更のときや控えとして、ファイルに書き出しておけます。新しいiPhoneでは「読み込む」で元どおりになります。</p>
+    <div class="backup-btns">
+      <button class="primary small" id="exportBtn">書き出す</button>
+      <label class="ghost-btn">読み込む<input type="file" id="importInput" accept="application/json,.json"></label>
+    </div>
+    <p class="note" id="lastExport"></p>
+    <p class="note" id="planNote"></p>
+  </section>
 
   <details class="card settings">
     <summary>マイルの計算の設定</summary>
@@ -45,6 +57,33 @@
 </main>
 
 <button class="fab" id="newBtn">＋ 記録する</button>
+
+<!-- 26本目から（有料版の案内） -->
+<div class="sheet" id="paywall" hidden>
+  <div class="sheet-head">
+    <button class="ghost" id="payClose">閉じる</button>
+    <strong>有料版のご案内</strong>
+    <span style="width:60px"></span>
+  </div>
+  <div class="wrap pay">
+    <div class="pay-hero">
+      <div class="seal big" aria-hidden="true">通</div>
+      <h2>26本目からは<br>有料版で書けます</h2>
+      <p>無料で書けるのは、通算25本までです。</p>
+    </div>
+    <div class="card">
+      <div class="price">1,000<small>円</small></div>
+      <p class="price-sub">買い切り。毎月のお支払いはありません。</p>
+      <ul>
+        <li>何本でも書ける</li>
+        <li>これまでの記録・写真・Signature はそのまま</li>
+        <li>書き出し・読み込みで機種変更しても続けられる</li>
+      </ul>
+      <p class="note">お支払いの仕組みは準備中です（試作）。</p>
+      <button class="ghost small" id="payTest">試作用：有料版として使う</button>
+    </div>
+  </div>
+</div>
 
 <!-- 記録の入力画面 -->
 <div class="sheet" id="sheet" hidden>
