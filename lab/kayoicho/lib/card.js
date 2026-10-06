@@ -188,6 +188,24 @@ export async function drawCard(canvas, card, scale = 1) {
     } catch {}
   }
 
+  // 左下: CAさんのサイン（白い線にして写真の上に載せる）
+  if (card.sign) {
+    const sw = card.sign.width, sh = card.sign.height;
+    const k = Math.min(440 / sw, 200 / sh);
+    const dw = sw * k, dh = sh * k;
+    const off = document.createElement("canvas");
+    off.width = Math.ceil(dw); off.height = Math.ceil(dh);
+    const o = off.getContext("2d");
+    o.drawImage(card.sign, 0, 0, dw, dh);
+    o.globalCompositeOperation = "source-in";
+    o.fillStyle = "#fff";
+    o.fillRect(0, 0, off.width, off.height);
+    ctx.save();
+    ctx.shadowColor = "rgba(0,0,0,0.45)"; ctx.shadowBlur = 8;
+    ctx.drawImage(off, 56, h - 56 - dh);
+    ctx.restore();
+  }
+
   // 右下の印（空の通い帳）
   const sx = w - 64, sy = h - 64;
   ctx.font = `600 30px ${SANS}`;

@@ -6,6 +6,8 @@ import { parseBCBP, flightNo, seatNo, dateFromDayOfYear } from "./lib/bcbp.js";
 import { guessRoute, airportName, cityCode } from "./lib/airports.js";
 import { drawCard, CARD_W, CARD_H } from "./lib/card.js";
 import { getPhoto, putPhoto, deletePhoto, shrink } from "./lib/photos.js";
+import { RATINGS, faceSvg } from "./lib/rating.js";
+import { makeSignPad } from "./lib/signpad.js";
 
 // ── 保存（試作のあいだはこの端末のブラウザの中だけ） ──
 const KEY = "kayoicho.v1";
@@ -132,7 +134,7 @@ function renderHome() {
         </div>
         <div class="what">
           <span class="date">${d.getMonth() + 1}/${d.getDate()}（${wd[d.getDay()]}）</span>
-          <b>${esc(e.flightNo || "便名なし")}</b>${flown ? "" : '<span class="stamp">予定</span>'}
+          <b>${esc(e.flightNo || "便名なし")}</b>${flown ? "" : '<span class="stamp">予定</span>'}${e.rating ? `<span class="face">${faceSvg(e.rating, 22)}</span>` : ""}
           <span class="route">${esc(routeText(e))}</span>
           <span class="fare">${esc(fareText(e))}${e.seatNo ? "・" + esc(e.seatNo) : ""}</span>
         </div>
@@ -178,6 +180,7 @@ function writeForm(e) {
   for (const el of form.elements) {
     if (!el.name || el.type === "file") continue;
     if (el.type === "checkbox") el.checked = !!e[el.name];
+    else if (el.type === "radio") el.checked = el.value === String(e[el.name] ?? "");
     else if (el.tagName !== "SELECT") el.value = e[el.name] ?? "";
   }
   showKind(e.kind);
@@ -229,12 +232,23 @@ form.addEventListener("input", (ev) => {
   drawPreview();
 });
 
+// ── その日の感想（顔）とCAさんのサイン ──
+$("#faces").innerHTML = RATINGS.map((r) =>
+  `<label><input type="radio" name="rating" value="${r.id}">${faceSvg(r.id, 40)}<span>${r.label}</span></label>`).join("");
+let signChanged = false, signBmp = null;
+const pad = makeSignPad($("#signPad"), async () => {
+  signChanged = true;
+  signBmp = await createImageBitmap(await pad.toBlob());
+  drawPreview();
+});
+$("#signClear").onclick = () => { pad.clear(); signChanged = true; signBmp = null; drawPreview(); };
+
 // ── 思い出の1枚 ──
 let photo = { blob: null, bmp: null, changed: false };
 let drawTimer = null;
 function cardData() {
   const e = readForm();
-  return { flightNo: e.flightNo, fromCode: e.fromCode, toCode: e.toCode, date: e.date, photo: photo.bmp };
+  return { flightNo: e.flightNo, fromCode: e.fromCode, toCode: e.toCode, date: e.date, photo: photo.bmp, sign: signBmp };
 }
 function drawPreview() {
   clearTimeout(drawTimer);
@@ -276,6 +290,11 @@ async function openSheet(id) {
   writeForm(e);
   $("#sheet").hidden = false;
   $("#sheet").scrollTop = 0;
+  pad.fit();
+  const sb = id && e.hasSign ? await getPhoto(id + "#sign") : null;
+  await pad.load(sb);
+  signBmp = sb ? await createImageBitmap(sb) : null;
+  signChanged = false;
   await setPhoto(id && e.hasPhoto ? await getPhoto(id) : null, false);
 }
 function closeSheet() { $("#sheet").hidden = true; }
@@ -292,6 +311,10 @@ $("#saveBtn").onclick = async () => {
     if (photo.blob) await putPhoto(id, photo.blob); else await deletePhoto(id);
     if (thumbUrls.has(id)) { URL.revokeObjectURL(thumbUrls.get(id)); thumbUrls.delete(id); }
   }
+  e.hasSign = signChanged ? pad.hasInk() : !!(prev && prev.hasSign);
+  if (signChanged) {
+    if (pad.hasInk()) await putPhoto(id + "#sign", await pad.toBlob()); else await deletePhoto(id + "#sign");
+  }
   if (prev) Object.assign(prev, e); else state.entries.push({ ...e, id });
   year = Number(e.date.slice(0, 4));
   save(); closeSheet(); renderHome();
@@ -300,6 +323,7 @@ $("#deleteBtn").onclick = async () => {
   if (!editingId) return;
   if (!confirm("この記録を消します。よろしいですか？")) return;
   await deletePhoto(editingId);
+  await deletePhoto(editingId + "#sign");
   state.entries = state.entries.filter((x) => x.id !== editingId);
   save(); closeSheet(); renderHome();
 };

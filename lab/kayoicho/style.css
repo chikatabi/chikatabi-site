@@ -134,4 +134,17 @@ label.check { display: flex; gap: 8px; align-items: center; }
 .pp { margin-top: 14px; padding: 10px 12px; border-radius: 12px; background: var(--paper-2); font-size: 14px; }
 .pp b { font: 700 20px var(--latin); font-variant-numeric: tabular-nums; }
 .pp.ng { color: var(--shu); }
+.faces { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 10px; }
+.faces label { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 0; padding: 8px 0 6px;
+  border-radius: 14px; border: 2px solid transparent; cursor: pointer; font-size: 12px; color: var(--ink-2); }
+.faces input { position: absolute; opacity: 0; pointer-events: none; }
+.faces svg { transition: transform .15s; }
+.faces label:has(input:checked) { border-color: var(--navy); background: var(--navy-soft); color: var(--ink); font-weight: 700; }
+.faces label:has(input:checked) svg { transform: scale(1.12); }
+.sign-head { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; font-size: 13px; color: var(--ink-2); }
+.sign-head .pill { padding: 4px 12px; font-size: 13px; }
+.signpad { display: block; width: 100%; height: 170px; margin-top: 6px; border-radius: 12px; touch-action: none;
+  border: 1px dashed var(--line); background:
+  linear-gradient(transparent 128px, var(--line) 128px, var(--line) 129px, transparent 129px), #FFFEFB; }
+.entry .face { display: inline-block; vertical-align: -5px; margin-left: 6px; }
 [hidden] { display: none !important; }
