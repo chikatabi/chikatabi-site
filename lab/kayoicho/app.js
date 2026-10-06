@@ -8,7 +8,7 @@ import { drawCard, CARD_W, CARD_H } from "./lib/card.js";
 import { getPhoto, putPhoto, deletePhoto, shrink } from "./lib/photos.js";
 import { RATINGS, faceSvg } from "./lib/rating.js";
 import { makeSignPad } from "./lib/signpad.js";
-import { FREE_LIMIT, canAdd, freeLeft, shouldRemindBackup } from "./lib/plan.js";
+import { FREE_LIMIT, canAdd, freeLeft } from "./lib/plan.js";
 import { pack, unpack } from "./lib/backup.js";
 
 // ── 保存（試作のあいだはこの端末のブラウザの中だけ） ──
@@ -330,16 +330,12 @@ function renderNotice(today) {
   const n = state.entries.length;
   const left = freeLeft(n, state.paid);
   let html = "";
-  if (shouldRemindBackup(n, state.lastExport, today)) {
-    html += `<div class="notice"><span>${state.lastExport ? "前の書き出しから30日たちました。" : "記録がたまってきました。"}控えに書き出しておきましょう。</span>
-      <button class="primary small" id="noticeExport">書き出す</button></div>`;
-  }
+  // 書き出しのすすめは上には出さない（下の「記録の書き出し・読み込み」で足りる。2026-10-06 CHIKA指示）
   if (left !== null && left <= 5) {
     html += `<div class="notice"><span>${left > 0 ? `無料で書けるのは、あと${left}本です。` : `無料の${FREE_LIMIT}本を書き終えました。`}</span>
       <button class="ghost small" id="noticePay">有料版を見る</button></div>`;
   }
   $("#notice").innerHTML = html;
-  const ex = $("#noticeExport"); if (ex) ex.onclick = exportBackup;
   const pb = $("#noticePay"); if (pb) pb.onclick = () => { $("#paywall").hidden = false; };
   $("#lastExport").textContent = state.lastExport ? `最後に書き出した日: ${state.lastExport.replaceAll("-", "/")}` : "まだ書き出していません。";
   $("#planNote").textContent = state.paid ? "有料版です。何本でも書けます。" : `無料版です。通算${FREE_LIMIT}本まで書けます（いま${n}本）。`;
