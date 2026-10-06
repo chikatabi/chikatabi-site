@@ -127,6 +127,7 @@ function parseBCBP(s) {
     const condLen = parseInt(s.slice(p + 35, p + 37), 16) || 0;
     const cond = s.slice(p + 37, p + 37 + condLen);
     L.追加情報 = cond;
+    L.航空会社の自由欄 = "";
     // 追加情報の中の会員番号（1区間目は先頭に共通部分がある）
     try {
       let c = cond, q = 0;
@@ -136,6 +137,7 @@ function parseBCBP(s) {
       if (rep.length >= 18) L.販売航空会社 = rep.slice(15, 18).trim();
       if (rep.length >= 21) L.会員の航空会社 = rep.slice(18, 21).trim();
       if (rep.length >= 37) L.会員番号 = rep.slice(21, 37).trim();
+      L.航空会社の自由欄 = c.slice(q + 2 + repLen);
     } catch (e) {}
     const doy = parseInt(L.日付_年初からの日数, 10);
     if (doy >= 1 && doy <= 366) {
@@ -158,7 +160,7 @@ function showBarcodeText(box, text, fmt, tag) {
     LOG.push(tag + " バーコード=" + fmt + " BCBP=読めた 区間数=" + b.区間の数);
     b.区間.forEach((L, i) => LOG.push(tag + "  区間" + (i + 1) + ": " + L.出発 + "→" + L.到着 + " " + L.航空会社 + L.便名 +
       " 日数=" + L.日付_年初からの日数 + " 区分コード=" + L.区分コード + " 座席=" + L.座席 +
-      " 予約番号=" + mask(L.予約番号) + " 会員番号=" + (L.会員番号 ? mask(L.会員番号) : "なし") + " 追加情報の長さ=" + L.追加情報.length));
+      " 予約番号=" + mask(L.予約番号) + " 会員番号=" + (L.会員番号 ? mask(L.会員番号) : "なし") + " 追加情報の長さ=" + L.追加情報.length + " 航空会社の自由欄=" + L.航空会社の自由欄));
   } else {
     box.insertAdjacentHTML("beforeend", "<p class='ng'>国際規格（BCBP）の形ではありませんでした</p>");
     LOG.push(tag + " バーコード=" + fmt + " BCBP=読めない 先頭10字=" + mask(text.slice(0, 10)) + " 長さ=" + text.length);
@@ -219,7 +221,13 @@ async function handlePkpass(buf, tag, box) {
 // ── 画像からバーコードを読む ──
 async function handleImage(file, tag, box) {
   box.insertAdjacentHTML("beforeend", "<p>画像を読み取っています…</p>");
-  const res = await ZXingWASM.readBarcodes(file, { tryHarder: true, maxNumberOfSymbols: 3 });
+  // 画像を一度ブラウザで画素に直してから渡す（ファイルのまま渡すと webp などで読めなかった）
+  const bmp = await createImageBitmap(file);
+  const cv = document.createElement("canvas");
+  cv.width = bmp.width; cv.height = bmp.height;
+  const ctx = cv.getContext("2d");
+  ctx.drawImage(bmp, 0, 0);
+  const res = await ZXingWASM.readBarcodes(ctx.getImageData(0, 0, cv.width, cv.height), { tryHarder: true, maxNumberOfSymbols: 3 });
   const found = res.filter(r => r.isValid && r.text);
   if (!found.length) {
     box.insertAdjacentHTML("beforeend", "<p class='ng'>バーコードが見つかりませんでした</p>");
