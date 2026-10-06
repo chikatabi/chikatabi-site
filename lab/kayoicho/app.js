@@ -232,7 +232,7 @@ form.addEventListener("input", (ev) => {
   drawPreview();
 });
 
-// ── その日の感想（顔）とCAさんのサイン ──
+// ── フライトの感想（顔）とCAさんのサイン ──
 $("#faces").innerHTML = RATINGS.map((r) =>
   `<label><input type="radio" name="rating" value="${r.id}">${faceSvg(r.id, 40)}<span>${r.label}</span></label>`).join("");
 let signChanged = false, signBmp = null;

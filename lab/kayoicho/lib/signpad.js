@@ -3,17 +3,17 @@ export function makeSignPad(canvas, onChange) {
   const ctx = canvas.getContext("2d");
   let drawing = false, last = null, inked = false;
 
+  // 画面の解像度に合わせて、線がにじまないようにする。
+  // 書いた線は引き継がない（前の記録のサインが次の記録に残る不具合があったため。2026-10-06 CHIKA指摘）
   function fit() {
-    // 画面の解像度に合わせて、線がにじまないようにする
     const r = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
-    const keep = inked ? canvas.toDataURL() : null;
+    inked = false;
     canvas.width = Math.max(1, Math.round(r.width * dpr));
     canvas.height = Math.max(1, Math.round(r.height * dpr));
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.lineCap = "round"; ctx.lineJoin = "round";
     ctx.strokeStyle = "#1D2A3F";
-    if (keep) { const im = new Image(); im.onload = () => ctx.drawImage(im, 0, 0, r.width, r.height); im.src = keep; }
   }
   const pt = (ev) => {
     const r = canvas.getBoundingClientRect();
