@@ -188,7 +188,7 @@ export async function drawCard(canvas, card, scale = 1) {
     } catch {}
   }
 
-  // 左下: CAさんのサイン（白い線にして写真の上に載せる）
+  // 左下: シグネチャー（白い線にして写真の上に載せる）
   if (card.sign) {
     const sw = card.sign.width, sh = card.sign.height;
     const k = Math.min(440 / sw, 200 / sh);

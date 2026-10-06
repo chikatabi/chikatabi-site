@@ -1,4 +1,4 @@
-// CAさんのサインを指やペンで書く欄。書いた線は透明な背景の画像として保存する。
+// シグネチャーを指やペンで書く欄。書いた線は透明な背景の画像として保存する。
 export function makeSignPad(canvas, onChange) {
   const ctx = canvas.getContext("2d");
   let drawing = false, last = null, inked = false;
