@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 150" width="240" height="300">
+  <!-- 空の通い帳 ロゴ（案B 機窓）: 機内の丸い窓から見える夕暮れの空と雲海、右下に「通」の印 -->
+  <defs>
+    <linearGradient id="dusk" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#16305E"/>
+      <stop offset=".5" stop-color="#3D6BA8"/>
+      <stop offset=".66" stop-color="#E9A57E"/>
+      <stop offset=".7" stop-color="#F6CDA2"/>
+      <stop offset=".74" stop-color="#8E9CC0"/>
+      <stop offset="1" stop-color="#4E6697"/>
+    </linearGradient>
+    <clipPath id="pane"><rect x="22" y="22" width="76" height="106" rx="34"/></clipPath>
+  </defs>
+  <!-- 窓枠 -->
+  <rect x="6" y="6" width="108" height="138" rx="50" fill="#F1ECE2"/>
+  <rect x="14" y="14" width="92" height="122" rx="42" fill="#DCD4C6"/>
+  <!-- 空と雲海 -->
+  <g clip-path="url(#pane)">
+    <rect x="22" y="22" width="76" height="106" fill="url(#dusk)"/>
+    <path d="M22 100 Q32 94 42 99 Q52 92 62 98 Q72 91 82 97 Q90 93 98 97 L98 128 L22 128 Z" fill="#6F82AE" opacity=".85"/>
+    <path d="M22 110 Q34 104 46 109 Q58 103 70 108 Q84 102 98 107 L98 128 L22 128 Z" fill="#566C9C"/>
+  </g>
+  <!-- 日よけ（上端） -->
+  <rect x="38" y="16" width="44" height="6" rx="3" fill="#C9C0B0"/>
+  <!-- 「通」の印 -->
+  <g transform="translate(92 118) rotate(-5)">
+    <rect x="-14" y="-14" width="28" height="28" rx="4" fill="#FFFDF8" stroke="#C8442F" stroke-width="3"/>
+    <text x="0" y="1" text-anchor="middle" dominant-baseline="middle" font-family="Hiragino Mincho ProN, serif" font-weight="700" font-size="19" fill="#C8442F">通</text>
+  </g>
+</svg>

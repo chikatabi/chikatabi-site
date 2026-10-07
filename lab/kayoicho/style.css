@@ -37,6 +37,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .hero { color: #fff; padding: calc(16px + env(safe-area-inset-top)) 0 72px;
   background: linear-gradient(180deg, var(--sky-1) 0%, var(--sky-2) 50%, #8FA3BF 72%, var(--dusk) 88%, var(--paper) 100%); }
 .brand { display: flex; align-items: center; gap: 12px; }
+.logo { display: block; flex: none; filter: drop-shadow(0 2px 6px rgba(0,0,0,.25)); }
+.logo.big { margin: 0 auto; filter: drop-shadow(0 4px 12px rgba(24,35,58,.18)); }
 .seal { width: 40px; height: 40px; background: rgba(255,255,255,.92); border: 2.5px solid var(--shu); color: var(--shu);
   border-radius: 7px; display: grid; place-items: center; font: 700 22px/1 var(--mincho); transform: rotate(-4deg); flex: none; }
 h1 { margin: 0; font: 600 21px/1.2 var(--mincho); letter-spacing: .1em; }

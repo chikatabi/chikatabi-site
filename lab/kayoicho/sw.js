@@ -2,10 +2,10 @@
 // 電波があるときは必ず最新を取りに行き、取れたらしまい直す。取れないときだけ、しまってあるものを出す。
 // （最初は「しまってあるものを先に出す」作りにしていて、更新がiPhoneに届かなかった。2026-10-06 CHIKA指摘）
 // 更新を出すときは VERSION を上げる。
-const VERSION = "kayoicho-2026-10-07-1";
+const VERSION = "kayoicho-2026-10-07-2";
 const FILES = [
   "./", "index.html", "app.js", "style.css", "manifest.webmanifest",
-  "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
+  "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png", "icons/logo.svg", "icons/favicon-32.png", "favicon.ico",
   "lib/airports.js", "lib/backup.js", "lib/bcbp.js", "lib/calc.js", "lib/card.js", "lib/domestic.js",
   "lib/fleet.js", "lib/silhouette.js", "lib/geo.js", "lib/intl.js", "lib/log.js", "lib/mapview.js",
   "lib/visits.js", "lib/photos.js", "lib/plan.js", "lib/rating.js", "lib/rules.js", "lib/signpad.js",
